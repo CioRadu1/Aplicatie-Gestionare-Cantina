@@ -21,13 +21,12 @@ Spring Boot backend application for the cafeteria management system.
 # Navigate to the backend folder
 cd Aplicatie-Gestionare-Stocuri
 
-# Run with Maven
-./mvnw spring-boot:run
-```
-
-Or on Windows:
-```bash
+# Run with Maven (Windows)
 mvnw.cmd spring-boot:run
+
+# Run with Maven (Linux/Mac)
+chmod +x mvnw
+./mvnw spring-boot:run
 ```
 
 The application will start on `http://localhost:8080`
@@ -39,6 +38,11 @@ The database is already configured in `application.properties` and connects to a
 ## Build for Production
 
 ```bash
+# Windows
+mvnw.cmd clean package
+
+# Linux/Mac
+chmod +x mvnw
 ./mvnw clean package
 ```
 

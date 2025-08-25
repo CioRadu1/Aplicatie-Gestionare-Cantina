@@ -22,6 +22,7 @@ Spring Boot backend application for the cafeteria management system.
 cd Aplicatie-Gestionare-Stocuri
 
 # Run with Maven
+chmod +x mvnw
 ./mvnw spring-boot:run
 ```
 
@@ -58,7 +59,7 @@ React frontend for the cantina management system.
 
 ## Prerequisites
 
-- **Node.js** (version 18 or higher)
+- **Node.js** (version 20+ or higher)
 - **npm** (comes with Node.js)
 
 ## Quick Setup
@@ -72,6 +73,7 @@ React frontend for the cantina management system.
 
 ```bash
 npm install
+npm install -D vite@latest @tailwindcss/vite@latest
 ```
 
 ### 3. Start Development Server

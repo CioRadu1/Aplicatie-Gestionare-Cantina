@@ -20,26 +20,26 @@ Before you begin, ensure you have the following installed:
 ## 🚀 Quick Start
 
 ### 1️⃣ Clone the repository
-\`\`\`bash
-git clone https://github.com/CioRadu1/https://github.com/CioRadu1/Aplicatie-Gestionare-Cantina
+```bash
+git clone https://github.com/CioRadu1/https://github.com/CioRadu1/Aplicatie-Gestionare-Cantina.git
 cd Aplicatie-Gestionare-Cantina
-\`\`\`
+```
 
 ### 2️⃣ Install dependencies
-\`\`\`bash
+```bash
 npm install
-\`\`\`
+```
 > 💡 This installs Tailwind CSS and all other required packages locally. No global Tailwind installation needed!
 
 ### 3️⃣ Start development server
-\`\`\`bash
+```bash
 npm run dev
-\`\`\`
+```
 
 ### 4️⃣ Build for production
-\`\`\`bash
+```bash
 npm run build
-\`\`\`
+```
 ## 🎨 Tailwind CSS Configuration
 
 This project uses Tailwind CSS with the following setup:

@@ -15,6 +15,19 @@ interface ExecutieReteta {
     numeReteta: string;
     localId?: string;
 }
+interface MateriePrima {
+    codArticol: string;
+    codMoneda: string;
+    denumire: string;
+    denumireScurta: string;
+    denumireUm: string;
+    gestiune: string;
+    gestiune1: string;
+    um: string;
+    tvaVanzare: string;
+    pretMateriePrima: number;
+    stoculActualTotal: number | null;
+}
 
 interface RetetaIngredient {
     id: {
@@ -60,7 +73,6 @@ const getVisiblePages = (currentPage: number, totalPages: number) => {
     return rangeWithDots;
 };
 
-// Custom hook for debounced values
 const useDebounce = (value: any, delay: number) => {
     const [debouncedValue, setDebouncedValue] = useState(value);
 
@@ -91,10 +103,21 @@ const Retete = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage] = useState(10);
+    const [umOptions, setUmOptions] = useState<string[]>([]);
+    const [denumireUmOptions, setDenumireUmOptions] = useState<string[]>([]);
+    const [allIngredients, setAllIngredients] = useState<MateriePrima[]>([]);
+    const [ingredientSearch, setIngredientSearch] = useState('');
+    const [filteredIngredients, setFilteredIngredients] = useState<MateriePrima[]>([]);
+    const [ingredientToDelete, setIngredientToDelete] = useState<RetetaIngredient | null>(null);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
 
-    // State for local input values (what user sees while typing)
     const [localPortiiValues, setLocalPortiiValues] = useState<{ [key: string]: string }>({});
     const [localIngredientValues, setLocalIngredientValues] = useState<{ [key: string]: string }>({});
+
+    const confirmDeleteIngredient = (ingredient: RetetaIngredient) => {
+        setIngredientToDelete(ingredient);
+        setShowDeleteModal(true);
+    };
 
     const [formData, setFormData] = useState<ExecutieReteta>({
         codArticol: '',
@@ -119,13 +142,49 @@ const Retete = () => {
         numeMateriePrima: ''
     });
 
-    // Debounce the local values
-    const debouncedPortiiValues = useDebounce(localPortiiValues, 1000);
-    const debouncedIngredientValues = useDebounce(localIngredientValues, 1000);
+    const debouncedPortiiValues = useDebounce(localPortiiValues, 300);
+    const debouncedIngredientValues = useDebounce(localIngredientValues, 700);
+
+    const fetchUmOptions = async () => {
+        try {
+            const response = await axios.get('http://localhost:8080/api/executii-retete/um-options');
+            setUmOptions(response.data);
+        } catch (err) {
+            console.error('Error fetching UM options:', err);
+        }
+    };
+    const fetchIngredienteOptions = async () => {
+        try {
+            const response = await axios.get('http://localhost:8080/api/materii-prime');
+            setAllIngredients(response.data);
+            setFilteredIngredients(response.data);
+        } catch (err) {
+            console.error('Error fetching UM options:', err);
+        }
+    };
+    const fetchDenumireUmOptions = async () => {
+        try {
+            const response = await axios.get('http://localhost:8080/api/retete/denumireUm-distinct');
+            setDenumireUmOptions(response.data);
+        } catch (err) {
+            console.error('Error fetching UM options:', err);
+        }
+    };
 
     useEffect(() => {
         fetchData();
+        fetchUmOptions();
+        fetchDenumireUmOptions();
+        fetchIngredienteOptions();
     }, []);
+
+    useEffect(() => {
+        const filtered = allIngredients.filter((ing) =>
+            ing.denumire.toLowerCase().includes(ingredientSearch.toLowerCase())
+        );
+        setFilteredIngredients(filtered);
+    }, [ingredientSearch, allIngredients]
+    );
 
     useEffect(() => {
         const filtered = data.filter(item =>
@@ -137,7 +196,6 @@ const Retete = () => {
         setCurrentPage(1);
     }, [data, searchTerm]);
 
-    // Effect to handle debounced portii updates
     useEffect(() => {
         Object.entries(debouncedPortiiValues).forEach(([codArticol, value]: any) => {
             const numValue = value === '' ? 0 : parseInt(value);
@@ -150,7 +208,6 @@ const Retete = () => {
         });
     }, [debouncedPortiiValues, data]);
 
-    // Effect to handle debounced ingredient updates
     useEffect(() => {
         Object.entries(debouncedIngredientValues).forEach(([key, value]) => {
             const [codReteta, codIngredient] = key.split('|');
@@ -177,7 +234,6 @@ const Retete = () => {
             setData(dataWithKeys);
             setFilteredData(dataWithKeys);
 
-            // Initialize local portii values
             const portiiValues: { [key: string]: string } = {};
             dataWithKeys.forEach((item: ExecutieReteta) => {
                 portiiValues[item.codArticol] = item.totalPortii.toString();
@@ -193,7 +249,6 @@ const Retete = () => {
             setLoading(false);
         }
     };
-
     const fetchIngredients = async (codReteta: string) => {
         try {
             const response = await axios.get(`http://localhost:8080/api/reteta-ingrediente/ingrediente?codReteta=${codReteta}`);
@@ -208,7 +263,6 @@ const Retete = () => {
                 [codReteta]: ingredientsWithKeys
             }));
 
-            // Initialize local ingredient values
             const ingredientValues: { [key: string]: string } = {};
             ingredientsWithKeys.forEach((ingredient: RetetaIngredient) => {
                 const key = `${ingredient.id.codReteta}|${ingredient.id.codIngredient}`;
@@ -231,21 +285,22 @@ const Retete = () => {
                 {
                     params: {
                         codArticol: codArticol,
-                        portii: newValue
-                    }
+                        totalPortii: newValue
+                    },
                 }
+
             ).then(() => {
                 fetchIngredients(codArticol);
             });
 
             setData(prev => prev.map(item =>
                 item.codArticol === codArticol
-                    ? { ...item, totalPortii: newValue }
+                    ? { ...item, totalPortii: newValue, statusReteta: newValue > 0 ? 1 : 0 }
                     : item
             ));
             setFilteredData(prev => prev.map(item =>
                 item.codArticol === codArticol
-                    ? { ...item, totalPortii: newValue }
+                    ? { ...item, totalPortii: newValue, statusReteta: newValue > 0 ? 1 : 0 }
                     : item
             ));
         } catch (err) {
@@ -255,6 +310,23 @@ const Retete = () => {
 
     const incrementPortii = (codArticol: string, currentValue: number) => {
         const newValue = currentValue + 1;
+        if (newValue > 0) {
+            setData(prev =>
+                prev.map(item =>
+                    item.codArticol === codArticol
+                        ? { ...item, statusReteta: 1 }
+                        : item
+                )
+            );
+
+            setFilteredData(prev =>
+                prev.map(item =>
+                    item.codArticol === codArticol
+                        ? { ...item, statusReteta: 1 }
+                        : item
+                )
+            );
+        }
         setLocalPortiiValues(prev => ({
             ...prev,
             [codArticol]: newValue.toString()
@@ -264,7 +336,7 @@ const Retete = () => {
     const handlePortiiChange = (codArticol: string, value: string) => {
         let safeValue = Math.abs(parseInt(value)).toString();
         value = safeValue === "NaN" ? "0" : safeValue;
-        
+
         setLocalPortiiValues(prev => ({
             ...prev,
             [codArticol]: value
@@ -274,6 +346,23 @@ const Retete = () => {
     const decrementPortii = (codArticol: string, currentValue: number) => {
         if (currentValue > 0) {
             const newValue = currentValue - 1;
+            if (newValue === 0) {
+                setData(prev =>
+                    prev.map(item =>
+                        item.codArticol === codArticol
+                            ? { ...item, statusReteta: 0 }
+                            : item
+                    )
+                );
+
+                setFilteredData(prev =>
+                    prev.map(item =>
+                        item.codArticol === codArticol
+                            ? { ...item, statusReteta: 0 }
+                            : item
+                    )
+                );
+            }
             setLocalPortiiValues(prev => ({
                 ...prev,
                 [codArticol]: newValue.toString()
@@ -335,7 +424,7 @@ const Retete = () => {
         setSelectedIngredient(null);
     };
 
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({
             ...prev,
@@ -346,7 +435,9 @@ const Retete = () => {
     };
 
     const handleIngredientInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = e.target;
+        let { name, value } = e.target;
+        let safeValue = Math.abs(parseInt(value)).toString();
+        value = safeValue === "NaN" ? "0" : safeValue;
         if (name === 'codIngredient') {
             setIngredientFormData(prev => ({
                 ...prev,
@@ -378,7 +469,6 @@ const Retete = () => {
     };
 
     const updateIngredient = async (ingredient: RetetaIngredient, field: string, value: number) => {
-        // Singurul field de acest tip, daca se mai adauga field-uri de genul in viitor trebuie modificat
         if (field != 'necesar')
             return;
 
@@ -427,16 +517,37 @@ const Retete = () => {
         setSearchTerm(e.target.value);
     };
 
-    // TODO: Fix this request
+    const handleDeleteIngredient = async (ingredient: RetetaIngredient) => {
+        try {
+            await axios.delete(`http://localhost:8080/api/reteta-ingrediente/delete-ingredient`,
+                {
+                    params: {
+                        codReteta: ingredient.id.codReteta,
+                        codIngredient: ingredient.id.codIngredient
+                    }
+
+                }
+            ).then(() => {
+                fetchIngredients(ingredient.id.codReteta);
+            });
+            if (selectedItem) fetchIngredients(selectedItem.codArticol);
+        } catch (err) {
+            console.error('Failed to delete ingredient:', err);
+        }
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
             if (modalType === 'add') {
-                await axios.post('http://localhost:8080/api/executii-retete', formData);
-            } else if (modalType === 'edit') {
-                await axios.put(`http://localhost:8080/api/executii-retete/${formData.codArticol}`, formData);
+                await axios.post('http://localhost:8080/api/retete', formData);
+            } else if (modalType === 'edit' && selectedItem) {
+                await axios.put(
+                    `http://localhost:8080/api/executii-retete/update?codArticol=${selectedItem.codArticol}`,
+                    formData
+                );
             } else if (modalType === 'delete' && selectedItem) {
-                await axios.delete(`http://localhost:8080/api/executii-retete/${selectedItem.codArticol}`);
+                await axios.delete(`http://localhost:8080/api/executii-retete/delete-reteta?codArticol=${selectedItem.codArticol}`);
             } else if (modalType === 'ingredient') {
                 if (selectedIngredient) {
                     await axios.delete(`http://localhost:8080/api/reteta-ingrediente/${ingredientFormData.id.codReteta}/${ingredientFormData.id.codIngredient}`);
@@ -487,7 +598,6 @@ const Retete = () => {
                             Adauga Reteta
                         </button>
                     </div>
-
                     <div className="flex items-center space-x-4">
                         <div className="relative flex-1 max-w-md">
                             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -510,7 +620,6 @@ const Retete = () => {
                         <thead className="bg-gray-50">
                             <tr>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-
                                 </th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Denumire Reteta
@@ -547,10 +656,11 @@ const Retete = () => {
                                                 onClick={() => toggleRowExpansion(item.codArticol)}
                                                 className="text-gray-500 hover:text-gray-700"
                                             >
-                                                {expandedRows.has(item.codArticol) ?
-                                                    <ChevronUp className="w-4 h-4" /> :
+                                                {expandedRows.has(item.codArticol) ? (
+                                                    <ChevronUp className="w-4 h-4" />
+                                                ) : (
                                                     <ChevronDown className="w-4 h-4" />
-                                                }
+                                                )}
                                             </button>
                                         </td>
                                         <td className="px-6 py-4">
@@ -587,6 +697,7 @@ const Retete = () => {
                                                     value={localPortiiValues[item.codArticol]}
                                                     onChange={(e) => handlePortiiChange(item.codArticol, e.target.value)}
                                                     className="w-16 px-2 py-1 text-center border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                    onClick={(e) => e.currentTarget.select()}
                                                 />
                                                 <button
                                                     onClick={() => incrementPortii(item.codArticol, parseInt(localPortiiValues[item.codArticol] || '0'))}
@@ -602,7 +713,9 @@ const Retete = () => {
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${item.statusReteta === 1 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${item.statusReteta === 1
+                                                ? 'bg-green-100 text-green-800'
+                                                : 'bg-red-100 text-red-800'
                                                 }`}>
                                                 {item.statusReteta === 1 ? 'Activa' : 'Inactiva'}
                                             </span>
@@ -624,7 +737,7 @@ const Retete = () => {
                                             </div>
                                         </td>
                                     </tr>
-                                    {expandedRows.has(item.codArticol) && ingredients[item.codArticol] && (
+                                    {expandedRows.has(item.codArticol) && (
                                         <tr>
                                             <td colSpan={9} className="px-6 py-4 bg-gray-50">
                                                 <div className="space-y-4">
@@ -651,7 +764,7 @@ const Retete = () => {
                                                                 </tr>
                                                             </thead>
                                                             <tbody>
-                                                                {ingredients[item.codArticol].map((ingredient, _) => {
+                                                                {(ingredients[item.codArticol] || []).map((ingredient, _) => {
                                                                     const ingredientKey = `${ingredient.id.codReteta}|${ingredient.id.codIngredient}`;
                                                                     return (
                                                                         <tr key={ingredient.localId} className="border-t">
@@ -672,7 +785,7 @@ const Retete = () => {
                                                                             </td>
                                                                             <td className="px-4 py-2">
                                                                                 <button
-                                                                                    onClick={() => openModal('delete', item, ingredient)}
+                                                                                    onClick={() => confirmDeleteIngredient(ingredient)}
                                                                                     className="text-red-600 hover:text-red-900 p-1 hover:bg-red-50 rounded transition-colors duration-200"
                                                                                 >
                                                                                     <Trash2 className="w-3 h-3" />
@@ -692,10 +805,11 @@ const Retete = () => {
                             ))}
                         </tbody>
                     </table>
-
                     {filteredData.length === 0 && !loading && (
                         <div className="text-center py-8 text-gray-500">
-                            {searchTerm ? 'Nu au fost gasite rezultate pentru cautarea ta' : 'Nu sunt retete disponibile'}
+                            {searchTerm
+                                ? 'Nu au fost gasite rezultate pentru cautarea ta'
+                                : 'Nu sunt retete disponibile'}
                         </div>
                     )}
                 </div>
@@ -715,7 +829,6 @@ const Retete = () => {
                             >
                                 <ChevronLeft className="w-4 h-4" />
                             </button>
-
                             {getVisiblePages(currentPage, totalPages).map((page: any, index: any) => {
                                 if (page === '...') {
                                     return (
@@ -727,11 +840,10 @@ const Retete = () => {
                                         </span>
                                     );
                                 }
-
                                 return (
                                     <button
                                         key={page}
-                                        onClick={() => handlePageChange(page as number)}
+                                        onClick={() => handlePageChange(page)}
                                         className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${page === currentPage
                                             ? 'bg-blue-500 text-white'
                                             : 'border border-gray-300 text-gray-700 hover:bg-gray-50'
@@ -741,7 +853,6 @@ const Retete = () => {
                                     </button>
                                 );
                             })}
-
                             <button
                                 onClick={() => handlePageChange(currentPage + 1)}
                                 disabled={currentPage === totalPages}
@@ -753,16 +864,76 @@ const Retete = () => {
                     </div>
                 )}
             </div>
-
+            {showDeleteModal && ingredientToDelete && (
+                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+                    <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full text-center">
+                        <p className="text-gray-700 mb-6">
+                            Esti sigur ca vrei sa stergi ingredientul "{ingredientToDelete.numeMateriePrima}"?
+                        </p>
+                        <div className="flex justify-center space-x-4">
+                            <button
+                                type="button"
+                                onClick={() => setShowDeleteModal(false)}
+                                className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors duration-200"
+                            >
+                                Anuleaza
+                            </button>
+                            <button
+                                type="button"
+                                onClick={async () => {
+                                    await handleDeleteIngredient(ingredientToDelete);
+                                    setShowDeleteModal(false);
+                                    setIngredientToDelete(null);
+                                }}
+                                className="px-6 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors duration-200"
+                            >
+                                Sterge
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+            {showDeleteModal && ingredientToDelete && (
+                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+                    <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full text-center">
+                        <p className="text-gray-700 mb-6">
+                            Esti sigur ca vrei sa stergi ingredientul "{ingredientToDelete.numeMateriePrima}"?
+                        </p>
+                        <div className="flex justify-center space-x-4">
+                            <button
+                                type="button"
+                                onClick={() => setShowDeleteModal(false)}
+                                className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors duration-200"
+                            >
+                                Anuleaza
+                            </button>
+                            <button
+                                type="button"
+                                onClick={async () => {
+                                    await handleDeleteIngredient(ingredientToDelete);
+                                    setShowDeleteModal(false);
+                                    setIngredientToDelete(null);
+                                }}
+                                className="px-6 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors duration-200"
+                            >
+                                Sterge
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
             {showModal && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
                     <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
                         <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
                             <h2 className="text-xl font-bold text-gray-800">
-                                {modalType === 'add' ? 'Adauga Reteta' :
-                                    modalType === 'edit' ? 'Modifica Reteta' :
-                                        modalType === 'delete' ? 'Sterge Reteta' :
-                                            'Modifica Ingredient'}
+                                {modalType === 'add'
+                                    ? 'Adauga Reteta'
+                                    : modalType === 'edit'
+                                        ? 'Modifica Reteta'
+                                        : modalType === 'delete'
+                                            ? 'Sterge Reteta'
+                                            : 'Modifica Ingredient'}
                             </h2>
                             <button
                                 onClick={closeModal}
@@ -771,7 +942,6 @@ const Retete = () => {
                                 <X className="w-6 h-6" />
                             </button>
                         </div>
-
                         <form onSubmit={handleSubmit} className="p-6">
                             {modalType === 'delete' ? (
                                 <div className="text-center">
@@ -795,33 +965,44 @@ const Retete = () => {
                                     </div>
                                 </div>
                             ) : modalType === 'ingredient' ? (
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 relative">
+                                    <div className="md:col-span-2 relative">
                                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Cod Ingredient
+                                            Alege Ingredient
                                         </label>
                                         <input
                                             type="text"
-                                            name="codIngredient"
-                                            value={ingredientFormData.id.codIngredient}
-                                            onChange={handleIngredientInputChange}
+                                            placeholder="Cauta ingredient..."
+                                            value={ingredientSearch}
+                                            onChange={(e) => setIngredientSearch(e.target.value)}
                                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                            required
                                         />
-                                    </div>
 
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Nume Materie Prima
-                                        </label>
-                                        <input
-                                            type="text"
-                                            name="numeMateriePrima"
-                                            value={ingredientFormData.numeMateriePrima}
-                                            onChange={handleIngredientInputChange}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                            required
-                                        />
+                                        {filteredIngredients.length > 0 && ingredientSearch && (
+                                            <ul className="absolute z-10 w-full bg-white border border-gray-300 rounded-lg mt-1 max-h-40 overflow-auto shadow-lg">
+                                                {filteredIngredients.map((ing) => (
+                                                    <li
+                                                        key={ing.codArticol}
+                                                        className="px-3 py-2 hover:bg-blue-100 cursor-pointer"
+                                                        onClick={() => {
+                                                            setIngredientFormData({
+                                                                ...ingredientFormData,
+                                                                id: {
+                                                                    codReteta: ingredientFormData.id.codReteta,
+                                                                    codIngredient: ing.codArticol
+                                                                },
+                                                                numeMateriePrima: ing.denumire,
+                                                                um: ing.um
+                                                            });
+                                                            setIngredientSearch(ing.denumire);
+                                                            setFilteredIngredients([]);
+                                                        }}
+                                                    >
+                                                        {ing.denumire} ({ing.um})
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        )}
                                     </div>
 
                                     <div>
@@ -834,22 +1015,9 @@ const Retete = () => {
                                             value={ingredientFormData.cantitate}
                                             onChange={handleIngredientInputChange}
                                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                            step="0.01"
+                                            step="0.0001"
                                             required
-                                        />
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            UM
-                                        </label>
-                                        <input
-                                            type="text"
-                                            name="um"
-                                            value={ingredientFormData.um}
-                                            onChange={handleIngredientInputChange}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                            required
+                                            onClick={(e) => e.currentTarget.select()}
                                         />
                                     </div>
 
@@ -884,131 +1052,264 @@ const Retete = () => {
                                 </div>
                             ) : (
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Cod Articol
-                                        </label>
-                                        <input
-                                            type="text"
-                                            name="codArticol"
-                                            value={formData.codArticol}
-                                            onChange={handleInputChange}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                            required
-                                        />
-                                    </div>
+                                    {modalType === 'add' ? (
+                                        <>
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                    Cod Articol
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    name="codArticol"
+                                                    onChange={handleInputChange}
+                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                    required
+                                                />
+                                            </div>
 
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Portii
-                                        </label>
-                                        <input
-                                            type="number"
-                                            name="portii"
-                                            value={formData.portii}
-                                            onChange={handleInputChange}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                            required
-                                        />
-                                    </div>
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                    Cod Moneda
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    name="codMoneda"
+                                                    onChange={handleInputChange}
+                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                />
+                                            </div>
 
-                                    <div className="md:col-span-2">
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Nume Reteta
-                                        </label>
-                                        <input
-                                            type="text"
-                                            name="numeReteta"
-                                            value={formData.numeReteta}
-                                            onChange={handleInputChange}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                            required
-                                        />
-                                    </div>
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                    Cont Stoc
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    name="contStoc"
+                                                    onChange={handleInputChange}
+                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                />
+                                            </div>
 
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            UM
-                                        </label>
-                                        <input
-                                            type="text"
-                                            name="um"
-                                            value={formData.um}
-                                            onChange={handleInputChange}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                            required
-                                        />
-                                    </div>
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                    Denumire
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    name="denumire"
 
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Total Portii
-                                        </label>
-                                        <input
-                                            type="number"
-                                            name="totalPortii"
-                                            value={formData.totalPortii}
-                                            onChange={handleInputChange}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                            required
-                                        />
-                                    </div>
+                                                    onChange={handleInputChange}
+                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                />
+                                            </div>
 
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Gramaj per Portie
-                                        </label>
-                                        <input
-                                            type="number"
-                                            name="gramajPerPortie"
-                                            value={formData.gramajPerPortie}
-                                            onChange={handleInputChange}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                            required
-                                        />
-                                    </div>
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                    Denumire Scurta
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    name="denumireScurta"
+                                                    onChange={handleInputChange}
+                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                />
+                                            </div>
 
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Status Reteta
-                                        </label>
-                                        <select
-                                            name="statusReteta"
-                                            value={formData.statusReteta}
-                                            onChange={(e) => setFormData(prev => ({ ...prev, statusReteta: Number(e.target.value) }))}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                        >
-                                            <option value={1}>Activa</option>
-                                            <option value={0}>Inactiva</option>
-                                        </select>
-                                    </div>
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                    Denumire UM
+                                                </label>
+                                                <select
+                                                    name="um"
+                                                    onChange={handleInputChange}
+                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                    required
+                                                >
+                                                    {denumireUmOptions.map((um) => (
+                                                        <option key={um} value={um}>{um}</option>
+                                                    ))}
+                                                </select>
+                                            </div>
 
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Data Ultima Modificare
-                                        </label>
-                                        <input
-                                            type="date"
-                                            name="dataUltimaModificare"
-                                            value={formData.dataUltimaModificare}
-                                            onChange={handleInputChange}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                            required
-                                        />
-                                    </div>
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                    Gestiune
+                                                </label>
+                                                <input
+                                                    type="number"
+                                                    name="gestiune"
+                                                    onChange={handleInputChange}
+                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                />
+                                            </div>
 
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Utilizator
-                                        </label>
-                                        <input
-                                            type="text"
-                                            name="utilizator"
-                                            value={formData.utilizator || ''}
-                                            onChange={handleInputChange}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                        />
-                                    </div>
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                    Gestiune 1
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    name="gestiune1"
+                                                    onChange={handleInputChange}
+                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                />
+                                            </div>
+
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                    TVA Vanzare
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    name="tvaVanzare"
+                                                    onChange={handleInputChange}
+                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                />
+                                            </div>
+
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                    TVA Vanzare 1
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    name="tvaVanzare1"
+                                                    onChange={handleInputChange}
+                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                />
+                                            </div>
+
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                    UM
+                                                </label>
+                                                <select
+                                                    name="um"
+                                                    onChange={handleInputChange}
+                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                    required
+                                                >
+                                                    {umOptions.map((um) => (
+                                                        <option key={um} value={um}>{um}</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                        </>
+                                    ) : (
+
+                                        <>
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                    Cod Articol
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    name="codArticol"
+                                                    value={formData.codArticol}
+                                                    onChange={handleInputChange}
+                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100"
+                                                    required
+                                                    disabled={modalType === 'edit'}
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                    Portii
+                                                </label>
+                                                <input
+                                                    type="number"
+                                                    name="portii"
+                                                    value={formData.portii}
+                                                    onChange={handleInputChange}
+                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                    required
+                                                />
+                                            </div>
+                                            <div className="md:col-span-2">
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                    Nume Reteta
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    name="numeReteta"
+                                                    value={formData.numeReteta}
+                                                    onChange={handleInputChange}
+                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                    required
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                    UM
+                                                </label>
+                                                <select
+                                                    name="um"
+                                                    value={formData.um}
+                                                    onChange={handleInputChange}
+                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                    required
+                                                >
+                                                    {umOptions.map((um) => (
+                                                        <option key={um} value={um}>{um}</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                    Total Portii
+                                                </label>
+                                                <input
+                                                    type="number"
+                                                    name="totalPortii"
+                                                    value={formData.totalPortii}
+                                                    onChange={handleInputChange}
+                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                    required
+                                                    onClick={(e) => e.currentTarget.select()}
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                    Gramaj per Portie
+                                                </label>
+                                                <input
+                                                    type="number"
+                                                    name="gramajPerPortie"
+                                                    value={formData.gramajPerPortie}
+                                                    onChange={handleInputChange}
+                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                    required
+                                                    onClick={(e) => e.currentTarget.select()}
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                    Data Ultima Modificare
+                                                </label>
+                                                <input
+                                                    type="date"
+                                                    name="dataUltimaModificare"
+                                                    value={formData.dataUltimaModificare}
+                                                    onChange={handleInputChange}
+                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                    required
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                    Utilizator
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    name="utilizator"
+                                                    value={formData.utilizator || ''}
+                                                    onChange={handleInputChange}
+                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                />
+                                            </div>
+                                        </>
+                                    )}
 
                                     <div className="md:col-span-2 flex justify-end space-x-4 mt-6">
                                         <button

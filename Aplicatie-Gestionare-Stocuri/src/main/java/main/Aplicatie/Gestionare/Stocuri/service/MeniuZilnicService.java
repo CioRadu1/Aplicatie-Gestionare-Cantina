@@ -1,5 +1,6 @@
 package main.Aplicatie.Gestionare.Stocuri.service;
 
+import main.Aplicatie.Gestionare.Stocuri.model.ExecutieReteta;
 import main.Aplicatie.Gestionare.Stocuri.model.MeniuZilnic;
 import main.Aplicatie.Gestionare.Stocuri.repository.MeniuZilnicRepository;
 import org.springframework.stereotype.Service;
@@ -15,8 +16,15 @@ public class MeniuZilnicService {
         this.meniuZilnicRepository = meniuZilnicRepository;
     }
 
-    public MeniuZilnic selecteazaRetetaPentruMeniu(MeniuZilnic meniuZilnic) {
-        return meniuZilnicRepository.save(meniuZilnic);
+    public Optional<MeniuZilnic> updatePortii(String codArticol, int totalPortiiNoi) {
+        Optional<MeniuZilnic> optionalMeniuZilnic = meniuZilnicRepository.findById(codArticol);
+        if (optionalMeniuZilnic.isPresent()) {
+            MeniuZilnic meniuZilnic = optionalMeniuZilnic.get();
+            meniuZilnic.setTotalPortii(totalPortiiNoi);
+            return Optional.of(meniuZilnicRepository.save(meniuZilnic));
+        } else {
+            return Optional.empty();
+        }
     }
 
     public void deleteMeniuZilnic(String codArticol) {

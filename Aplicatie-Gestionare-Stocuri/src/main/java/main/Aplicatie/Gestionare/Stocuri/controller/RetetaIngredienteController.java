@@ -30,9 +30,6 @@ public class RetetaIngredienteController {
     public ResponseEntity<List<RetetaIngrediente>> getIngredienteByRetetaId(
             @RequestParam String codReteta) {
         List<RetetaIngrediente> ingrediente = retetaIngredienteService.findByCodReteta(codReteta);
-        if (ingrediente.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
         return ResponseEntity.ok(ingrediente);
     }
 
@@ -86,10 +83,10 @@ public class RetetaIngredienteController {
         }
     }
 
-    @DeleteMapping("/{codReteta}/{codIngredient}")
+    @DeleteMapping("/delete-ingredient")
     public ResponseEntity<Void> deleteRetetaIngrediente(
-            @PathVariable String codReteta,
-            @PathVariable String codIngredient) {
+            @RequestParam String codReteta,
+            @RequestParam String codIngredient) {
         RetetaIngredienteKey id = new RetetaIngredienteKey();
         id.setCodReteta(codReteta);
         id.setCodIngredient(codIngredient);

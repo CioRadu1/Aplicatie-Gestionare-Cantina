@@ -18,6 +18,9 @@ public class RetetaService {
     public List<Reteta> findAllRetete() {
         return retetaRepository.findAll();
     }
+    public List<String> findAllDenumireUm() {
+        return retetaRepository.findDistinctDenumireUm();
+    }
 
     public Optional<Reteta> findById(String codArticol) {
         return retetaRepository.findById(codArticol);

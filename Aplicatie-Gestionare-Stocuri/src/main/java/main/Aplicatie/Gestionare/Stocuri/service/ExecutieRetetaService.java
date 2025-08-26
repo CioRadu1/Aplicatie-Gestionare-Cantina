@@ -18,7 +18,9 @@ public class ExecutieRetetaService {
     public List<ExecutieReteta> findAllExecutii() {
         return executieRetetaRepository.findAll();
     }
-
+    public List<String> findAllUmOptions() {
+        return executieRetetaRepository.findDistinctUm();
+    }
     public Optional<ExecutieReteta> findById(String codArticol) {
         return executieRetetaRepository.findById(codArticol);
     }
@@ -26,6 +28,10 @@ public class ExecutieRetetaService {
     public ExecutieReteta saveExecutieReteta(ExecutieReteta executieReteta) {
         return executieRetetaRepository.save(executieReteta);
     }
+    public int findStatusByCodReteta(String codArticol) {
+        return executieRetetaRepository.findStatusByCodArticol(codArticol);
+    }
+
 
     public void deleteExecutieReteta(String codArticol) {
         executieRetetaRepository.deleteById(codArticol);

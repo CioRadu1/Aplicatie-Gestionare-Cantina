@@ -51,8 +51,8 @@ public class ExecutieRetetaController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @DeleteMapping("/{codArticol}")
-    public ResponseEntity<Void> deleteExecutie(@PathVariable String codArticol) {
+    @DeleteMapping("/delete-reteta")
+    public ResponseEntity<Void> deleteExecutie(@RequestParam String codArticol) {
         if (executieRetetaService.findById(codArticol).isPresent()) {
             executieRetetaService.deleteExecutieReteta(codArticol);
             return ResponseEntity.noContent().build();
@@ -64,15 +64,25 @@ public class ExecutieRetetaController {
     @PutMapping("/update-portii")
     public ResponseEntity<ExecutieReteta> updatePortii(
             @RequestParam String codArticol,
-            @RequestParam int portii) {
+            @RequestParam int totalPortii) {
 
-        return executieRetetaService.updatePortii(codArticol, portii)
+        return executieRetetaService.updatePortii(codArticol, totalPortii)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/um-options")
+    public List<String> getUmOptions() {
+        return executieRetetaService.findAllUmOptions();
     }
 
     @GetMapping("/search")
     public List<ExecutieReteta> getExecutiiByNumeReteta(@RequestParam String nume) {
         return executieRetetaService.findByNumeReteta(nume);
+    }
+
+    @GetMapping("/status")
+    public int getStatusReteta(@RequestParam String codArticol) {
+        return executieRetetaService.findStatusByCodReteta(codArticol);
     }
 }

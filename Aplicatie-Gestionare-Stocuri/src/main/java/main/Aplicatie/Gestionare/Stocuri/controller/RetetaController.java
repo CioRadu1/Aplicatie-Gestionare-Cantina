@@ -21,6 +21,11 @@ public class RetetaController {
         return retetaService.findAllRetete();
     }
 
+    @GetMapping("/denumireUm-distinct")
+    public List<String> getAllDenumireUmDistinct() {
+        return retetaService.findAllDenumireUm();
+    }
+
     @GetMapping("/{codArticol}")
     public ResponseEntity<Reteta> getRetetaById(@PathVariable String codArticol) {
         return retetaService.findById(codArticol)

@@ -21,25 +21,20 @@ const getVisiblePages = (currentPage: number, totalPages: number) => {
     const range = [];
     const rangeWithDots:any = [];
 
-    // Always show first page
     range.push(1);
 
-    // Calculate the range around current page
     for (let i = Math.max(2, currentPage - delta); 
          i <= Math.min(totalPages - 1, currentPage + delta); 
          i++) {
         range.push(i);
     }
 
-    // Always show last page (if more than 1 page)
     if (totalPages > 1) {
         range.push(totalPages);
     }
 
-    // Remove duplicates and sort
     const uniqueRange = [...new Set(range)].sort((a, b) => a - b);
 
-    // Add ellipses where there are gaps
     let prev = 0;
     uniqueRange.forEach((page) => {
         if (page - prev > 1) {
@@ -81,7 +76,6 @@ const MateriiPrime = () => {
         fetchData();
     }, []);
 
-    // Search and filter effect
     useEffect(() => {
         const filtered = data.filter(item =>
             item.denumire.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -90,7 +84,7 @@ const MateriiPrime = () => {
             item.tvaVanzare.toLowerCase().includes(searchTerm.toLowerCase())
         );
         setFilteredData(filtered);
-        setCurrentPage(1); // Reset to first page when searching
+        setCurrentPage(1);
     }, [data, searchTerm]);
 
     const fetchData = async () => {
@@ -160,7 +154,6 @@ const MateriiPrime = () => {
         }));
     };
 
-    // Pagination calculations
     const totalPages = Math.ceil(filteredData.length / itemsPerPage);
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
@@ -213,7 +206,6 @@ const MateriiPrime = () => {
     return (
         <div className="p-6">
             <div className="bg-white rounded-xl shadow-lg">
-                {/* Header */}
                 <div className="px-6 py-4 border-b border-gray-200">
                     <div className="flex justify-between items-center mb-4">
                         <h1 className="text-2xl font-bold text-gray-800">Materii Prime</h1>
@@ -225,8 +217,7 @@ const MateriiPrime = () => {
                             Adauga
                         </button>
                     </div>
-                    
-                    {/* Search Bar */}
+
                     <div className="flex items-center space-x-4">
                         <div className="relative flex-1 max-w-md">
                             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -244,7 +235,6 @@ const MateriiPrime = () => {
                     </div>
                 </div>
 
-                {/* Table */}
                 <div className="overflow-x-auto">
                     <table className="w-full">
                         <thead className="bg-gray-50">
@@ -333,7 +323,6 @@ const MateriiPrime = () => {
                     )}
                 </div>
 
-                {/* Pagination */}
                 {totalPages > 1 && (
                     <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
                         <div className="flex items-center text-sm text-gray-500">
@@ -389,7 +378,6 @@ const MateriiPrime = () => {
                 )}
             </div>
 
-            {/* Modal */}
             {showModal && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
                     <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
@@ -408,7 +396,6 @@ const MateriiPrime = () => {
                             </button>
                         </div>
 
-                        {/* Modal Content */}
                         <form onSubmit={handleSubmit} className="p-6">
                             {modalType === 'delete' ? (
                                 <div className="text-center">

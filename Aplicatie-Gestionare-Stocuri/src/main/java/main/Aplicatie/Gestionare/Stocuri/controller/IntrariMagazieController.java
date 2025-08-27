@@ -43,10 +43,10 @@ public class IntrariMagazieController {
         return intrariMagazieService.addIntrareMagazie(intrare);
     }
 
-    @PutMapping("/{codIngredient}/{dataAchizitie}")
+    @PutMapping("/edit-intrare")
     public ResponseEntity<IntrariMagazie> updateIntrare(
-            @PathVariable String codIngredient,
-            @PathVariable @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate  dataAchizitie,
+            @RequestParam String codIngredient,
+            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate  dataAchizitie,
             @RequestBody IntrariMagazie intrareDetails) {
         IntrariMagazieKey id = new IntrariMagazieKey();
         id.setCodIngredient(codIngredient);
@@ -64,10 +64,10 @@ public class IntrariMagazieController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @DeleteMapping("/{codIngredient}/{dataAchizitie}")
+    @DeleteMapping("/delete")
     public ResponseEntity<Void> deleteIntrare(
-            @PathVariable String codIngredient,
-            @PathVariable @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate  dataAchizitie) {
+            @RequestParam String codIngredient,
+            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate  dataAchizitie) {
         IntrariMagazieKey id = new IntrariMagazieKey();
         id.setCodIngredient(codIngredient);
         id.setDataAchizitie(dataAchizitie);

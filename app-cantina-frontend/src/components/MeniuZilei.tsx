@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { Plus, Trash2, X, Search, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Minus } from "lucide-react";
+import { Plus, Trash2, X, Search, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Minus, Check } from "lucide-react";
 import { v4 as uuidv4 } from 'uuid';
 
 interface MeniuZileiItem {
@@ -89,6 +89,7 @@ const MeniuZilei = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage] = useState(10);
+    const [showFinalizeModal, setShowFinalizeModal] = useState(false);
 
 
     const [localPortiiValues, setLocalPortiiValues] = useState<{ [key: string]: string }>({});
@@ -197,6 +198,16 @@ const MeniuZilei = () => {
         }
     };
 
+    const handleFinalizeDay = async () => {
+        try {
+            await axios.delete('http://localhost:8080/api/meniu-zilnic/finalizare-zi');
+            await fetchData(); 
+            setShowFinalizeModal(false);
+        } catch (err) {
+            console.error('Error finalizing day:', err);
+            setError('Failed to finalize day');
+        }
+    };
     const incrementPortii = (codArticol: string, currentValue: number) => {
         const newValue = currentValue + 1;
         if (newValue > 0) {
@@ -332,6 +343,17 @@ const MeniuZilei = () => {
         <div className="p-6">
             <div className="bg-white rounded-xl shadow-lg">
                 <div className="px-6 py-4 border-b border-gray-200">
+                    <div className="flex justify-between items-center mb-4">
+                        <h1 className="text-2xl font-bold text-gray-800">Meniul Zilei</h1>
+                        <button
+                            onClick={() => setShowFinalizeModal(true)}
+                            className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors duration-200 flex items-center gap-2"
+                            disabled={filteredData.length === 0}
+                        >
+                            <Check className="w-4 h-4" />
+                            Finalizare Zi
+                        </button>
+                    </div>
                     <div className="flex justify-between items-center mb-4">
                         <h1 className="text-2xl font-bold text-gray-800">Meniul Zilei</h1>
                     </div>
@@ -609,6 +631,47 @@ const MeniuZilei = () => {
                                 </div>
                             </div>
                         </form>
+                    </div>
+                </div>
+            )}
+            {showFinalizeModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+                    <div className="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4">
+                        <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                            <h2 className="text-xl font-bold text-gray-800">
+                                Finalizare Zi
+                            </h2>
+                            <button
+                                onClick={() => setShowFinalizeModal(false)}
+                                className="text-gray-400 hover:text-gray-600"
+                            >
+                                <X className="w-6 h-6" />
+                            </button>
+                        </div>
+
+                        <div className="p-6">
+                            <div className="text-center">
+                                <p className="text-gray-700 mb-6">
+                                    Esti sigur ca vrei sa finalizezi ziua? Aceasta actiune va sterge toate retetele din meniul zilei.
+                                </p>
+                                <div className="flex justify-center space-x-4">
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowFinalizeModal(false)}
+                                        className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors duration-200"
+                                    >
+                                        Anuleaza
+                                    </button>
+
+                                    <button
+                                        onClick={handleFinalizeDay}
+                                        className="px-6 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors duration-200"
+                                    >
+                                        Finalizare Zi
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             )}

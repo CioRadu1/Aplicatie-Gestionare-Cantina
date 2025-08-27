@@ -53,4 +53,8 @@ public class MeniuZilnicController {
     public List<MeniuZilnic> getMeniuByNumeReteta(@RequestParam String nume) {
         return meniuZilnicService.findByNumeReteta(nume);
     }
+    @DeleteMapping("/finalizare-zi")
+    public void finalizareZi() {
+        meniuZilnicService.deleteAllMeniuZilnic();
+    }
 }

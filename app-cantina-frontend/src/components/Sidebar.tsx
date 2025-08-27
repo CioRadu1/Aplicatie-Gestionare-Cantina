@@ -12,6 +12,7 @@ const Sidebar = ({activePage, onPageChange} : SidebarProps) => {
     { name: 'Materii Prime', icon: Package },
     { name: 'Meniul Zilei', icon: Calendar },
     { name: 'Intrari Magazie', icon: Archive }
+    
   ];
 
   return (
@@ -40,7 +41,7 @@ const Sidebar = ({activePage, onPageChange} : SidebarProps) => {
                 <li key={item.name}>
                   <button
                     onClick={() => onPageChange(item.name)}
-                    className={`w-full flex items-center px-4 py-3 rounded-lg text-left transition-all duration-200 transform hover:scale-105 hover:shadow-md ${
+                    className={`hover:cursor-pointer w-full flex items-center px-4 py-3 rounded-lg text-left transition-all duration-200 transform hover:scale-105 hover:shadow-md ${
                       isActive 
                         ? 'bg-blue-500 text-white shadow-lg' 
                         : 'text-gray-700 hover:bg-blue-50 hover:text-blue-600'
@@ -60,17 +61,17 @@ const Sidebar = ({activePage, onPageChange} : SidebarProps) => {
         {/* Settings at Bottom */}
         <div className="p-4 border-t border-gray-200">
           <button 
-            onClick={() => onPageChange('Setari')}
-            className={`w-full flex items-center px-4 py-3 rounded-lg text-left transition-all duration-200 transform hover:scale-105 hover:shadow-md ${
-              activePage === 'Setari'
+            onClick={() => onPageChange('Export')}
+            className={`hover:cursor-pointer w-full flex items-center px-4 py-3 rounded-lg text-left transition-all duration-200 transform hover:scale-105 hover:shadow-md ${
+              activePage === 'Export'
                 ? 'bg-gray-500 text-white shadow-lg'
                 : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700'
             }`}
           >
             <Settings className={`w-5 h-5 mr-3 transition-transform duration-200 ${
-              activePage === 'Setari' ? 'rotate-180 scale-110' : 'hover:rotate-90'
+              activePage === 'Export' ? 'rotate-180 scale-110' : 'hover:rotate-90'
             }`} />
-            <span className="font-medium">Setari</span>
+            <span className="font-medium">Export</span>
           </button>
         </div>
       </div>

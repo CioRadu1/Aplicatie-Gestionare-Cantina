@@ -30,7 +30,9 @@ public class MeniuZilnicService {
     public void deleteMeniuZilnic(String codArticol) {
         meniuZilnicRepository.deleteById(codArticol);
     }
-
+    public void deleteAllMeniuZilnic() {
+        meniuZilnicRepository.deleteAll();
+    }
     public List<MeniuZilnic> findAllMeniuZilnic() {
         return meniuZilnicRepository.findAll();
     }

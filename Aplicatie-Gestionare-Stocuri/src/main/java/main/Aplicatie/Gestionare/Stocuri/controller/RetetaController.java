@@ -38,8 +38,8 @@ public class RetetaController {
         return retetaService.saveReteta(reteta);
     }
 
-    @PutMapping("/{codArticol}")
-    public ResponseEntity<Reteta> updateReteta(@PathVariable String codArticol, @RequestBody Reteta retetaDetails) {
+    @PutMapping("/update-reteta")
+    public ResponseEntity<Reteta> updateReteta(@RequestParam String codArticol, @RequestBody Reteta retetaDetails) {
         return retetaService.findById(codArticol)
                 .map(reteta -> {
                     reteta.setCodArticol(retetaDetails.getCodArticol());

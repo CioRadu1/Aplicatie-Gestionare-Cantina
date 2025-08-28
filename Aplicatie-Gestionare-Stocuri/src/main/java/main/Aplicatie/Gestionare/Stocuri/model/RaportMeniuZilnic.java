@@ -1,9 +1,6 @@
 package main.Aplicatie.Gestionare.Stocuri.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -12,9 +9,8 @@ import java.time.LocalDate;
 @Table(name = "raport_meniu")
 @Data
 public class RaportMeniuZilnic {
-    @Id
-    @Column(name = "Cod articol")
-    private String codArticol;
+    @EmbeddedId
+    private RaportMeniuZilnicKey id;
     private int portii;
     private BigDecimal gramajPerPortie;
     private String um;
@@ -23,7 +19,6 @@ public class RaportMeniuZilnic {
     private LocalDate dataUltimaModificare;
     private String utilizator;
     private String numeReteta;
-    private LocalDate dataDeProducere;
     private BigDecimal pretStandard;
     private BigDecimal valoareStandard;
 }

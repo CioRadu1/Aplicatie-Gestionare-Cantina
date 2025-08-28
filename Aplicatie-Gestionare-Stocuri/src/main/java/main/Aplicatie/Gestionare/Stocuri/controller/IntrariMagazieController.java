@@ -7,9 +7,11 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/intrari-magazie")
@@ -34,6 +36,19 @@ public class IntrariMagazieController {
         id.setCodIngredient(codIngredient);
         id.setDataAchizitie(dataAchizitie);
         return intrariMagazieService.findById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PutMapping("/update-folosita")
+    public ResponseEntity<IntrariMagazie> updateFolosita(
+            @RequestParam String codIngredient,
+            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate dataAchizitie,
+            @RequestParam BigDecimal cantitateFolosita) {
+        IntrariMagazieKey id = new IntrariMagazieKey();
+        id.setCodIngredient(codIngredient);
+        id.setDataAchizitie(dataAchizitie);
+        return intrariMagazieService.updateFolosita(codIngredient, dataAchizitie, cantitateFolosita)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
@@ -78,7 +93,10 @@ public class IntrariMagazieController {
             return ResponseEntity.notFound().build();
         }
     }
-
+    @GetMapping("/ingredient")
+    public List<IntrariMagazie> getIntrariById(@RequestParam String codIngredient) {
+        return intrariMagazieService.findByCodArticol(codIngredient);
+    }
     @GetMapping("/search/cod")
     public List<IntrariMagazie> getIntrariByCodIngredient(@RequestParam String codIngredient, @RequestParam LocalDate dataAchizitie) {
         return intrariMagazieService.findByCodIngredient(codIngredient, dataAchizitie);

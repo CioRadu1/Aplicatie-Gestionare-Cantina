@@ -110,7 +110,15 @@ const MeniuZilei = () => {
         setCurrentPage(1);
     }, [data, searchTerm]);
 
-    // Effect to handle debounced portii updates
+    useEffect(() => {
+
+        for (const codArticol in debouncedPortiiValues) {
+            if (parseInt(debouncedPortiiValues[codArticol]) === 0) {
+                fetchData();
+            }
+        }
+    }, [debouncedPortiiValues]);
+
     useEffect(() => {
         Object.entries(debouncedPortiiValues).forEach(([codArticol, value]: any) => {
             const numValue = value === '' ? 0 : parseInt(value);
@@ -199,10 +207,45 @@ const MeniuZilei = () => {
     };
 
     const handleFinalizeDay = async () => {
+        setShowFinalizeModal(false);
         try {
+            const meniuZilnicResponse = await axios.get('http://localhost:8080/api/meniu-zilnic');
+            const reteteDeArhivat = meniuZilnicResponse.data;
+
+            const raportResponse = await axios.get('http://localhost:8080/api/raport-meniul-zilei');
+            const existingCodArticole = new Set(
+                Array.isArray(raportResponse.data)
+                    ? raportResponse.data.map((item: any) => item.codArticol)
+                    : []
+            );
+
+            for (const reteta of reteteDeArhivat) {
+                if (!existingCodArticole.has(reteta.codArticol)) {
+                    const raportItem = {
+                        codArticol: reteta.codArticol,
+                        portii: reteta.portii,
+                        gramajPerPortie: reteta.gramajPerPortie,
+                        um: reteta.um,
+                        totalPortii: reteta.totalPortii,
+                        statusReteta: reteta.statusReteta,
+                        dataUltimaModificare: reteta.dataUltimaModificare,
+                        utilizator: reteta.utilizator,
+                        numeReteta: reteta.numeReteta,
+                        dataDeProducere: new Date().toISOString().split('T')[0],
+                        pretStandard: 0,
+                        valoareStandard: 0,
+                    };
+
+                    await axios.post('http://localhost:8080/api/raport-meniul-zilei', raportItem);
+                } else {
+                    console.log(`Reteta cu codul ${reteta.codArticol} exista deja in raport. Sar peste.`);
+                }
+            }
+
             await axios.delete('http://localhost:8080/api/meniu-zilnic/finalizare-zi');
-            await fetchData(); 
-            setShowFinalizeModal(false);
+
+            await fetchData();
+
         } catch (err) {
             console.error('Error finalizing day:', err);
             setError('Failed to finalize day');
@@ -233,20 +276,11 @@ const MeniuZilei = () => {
         }));
     };
 
-    const handlePortiiChange = (codArticol: string, value: string) => {
+    const handlePortiiChange = async (codArticol: string, value: string) => {
         let safeValue = Math.abs(parseInt(value)).toString();
         value = safeValue === "NaN" ? "0" : safeValue;
-
-        setLocalPortiiValues(prev => ({
-            ...prev,
-            [codArticol]: value
-        }));
-    };
-
-    const decrementPortii = (codArticol: string, currentValue: number) => {
-        if (currentValue > 0) {
-            const newValue = currentValue - 1;
-            if (newValue === 0) {
+        if (value === "0") {
+            try {
                 setData(prev =>
                     prev.map(item =>
                         item.codArticol === codArticol
@@ -262,7 +296,73 @@ const MeniuZilei = () => {
                             : item
                     )
                 );
+
+                await axios.delete(`http://localhost:8080/api/meniu-zilnic/delete-reteta-from-meniu?codArticol=${codArticol}`);
+
+                setData(prev => prev.filter(item => item.codArticol !== codArticol));
+                setFilteredData(prev => prev.filter(item => item.codArticol !== codArticol));
+
+
+            } catch (err) {
+                console.error('Error deleting total portii:', err);
             }
+        } else {
+            setLocalPortiiValues(prev => ({
+                ...prev,
+                [codArticol]: value
+            }));
+        }
+    };
+
+    const decrementPortii = async (codArticol: string, currentValue: number) => {
+        if (currentValue > 0) {
+            const newValue = currentValue - 1;
+
+            if (newValue === 0) {
+                try {
+                    setData(prev =>
+                        prev.map(item =>
+                            item.codArticol === codArticol
+                                ? { ...item, statusReteta: 0 }
+                                : item
+                        )
+                    );
+
+                    setFilteredData(prev =>
+                        prev.map(item =>
+                            item.codArticol === codArticol
+                                ? { ...item, statusReteta: 0 }
+                                : item
+                        )
+                    );
+
+                    await axios.delete(`http://localhost:8080/api/meniu-zilnic/delete-reteta-from-meniu?codArticol=${codArticol}`);
+
+                    setData(prev => prev.filter(item => item.codArticol !== codArticol));
+                    setFilteredData(prev => prev.filter(item => item.codArticol !== codArticol));
+
+
+                } catch (err) {
+                    console.error('Error deleting total portii:', err);
+                }
+            } else {
+                await updateTotalPortii(codArticol, newValue);
+                setData(prev =>
+                    prev.map(item =>
+                        item.codArticol === codArticol
+                            ? { ...item, totalPortii: newValue }
+                            : item
+                    )
+                );
+                setFilteredData(prev =>
+                    prev.map(item =>
+                        item.codArticol === codArticol
+                            ? { ...item, totalPortii: newValue }
+                            : item
+                    )
+                );
+            }
+
             setLocalPortiiValues(prev => ({
                 ...prev,
                 [codArticol]: newValue.toString()

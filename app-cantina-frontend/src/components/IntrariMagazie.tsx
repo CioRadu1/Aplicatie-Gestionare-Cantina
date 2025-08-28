@@ -225,7 +225,6 @@ const IntrariMagazie = () => {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        console.log('Raw formData:', formData);
         const submitData: IntrariMagazie = {
             id: {
                 codIngredient: formData.id?.codIngredient || '',

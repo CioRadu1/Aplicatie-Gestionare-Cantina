@@ -6,59 +6,47 @@ const dataSourceConfigs = {
         name: 'Situatie Cantitativ-Valorica',
         endpoint: null,
         icon: <Database className="w-4 h-4" />,
-        columns: []
+        columns: [],
+        hasDateFilter: true,
+        hasItemSelection: false
     },
     'meniu-zilei-raport': {
         name: 'Meniu Zilei (Raport)',
-        endpoint: `http://localhost:8080/api/raport-meniul-zilei/meniu-zilei-raport`,
+        endpoint: `http://localhost:8080/api/raport-meniul-zilei`,
         icon: <FileText className="w-4 h-4" />,
         columns: [
-            { key: 'Poz.', label: 'Poz.', type: 'string' },
-            { key: 'Articol', label: 'Articol', type: 'string' },
-            { key: 'Nume Articol', label: 'Nume Articol', type: 'string' },
-            { key: 'UM Doc.', label: 'UM Doc.', type: 'string' },
-            { key: 'Cont Stoc', label: 'Cont Stoc', type: 'string' },
-            { key: 'Zona', label: 'Zona', type: 'number' },
-            { key: 'Purtator', label: 'Purtator', type: 'number' },
-            { key: 'Q. Doc.', label: 'Q. Doc.', type: 'number' },
-            { key: 'Q. Livrata Doc.', label: 'Q. Livrata Doc.', type: 'number' },
-            { key: 'Pret St.', label: 'Pret St.', type: 'number' },
-            { key: 'Val. St.', label: 'Val. St.', type: 'number' },
-            { key: 'Denumire', label: 'Denumire', type: 'string' },
-            { key: 'Denumire Produs', label: 'Denumire Produs', type: 'string' },
-            { key: 'Data Lot', label: 'Data Lot', type: 'date' },
-            { key: 'Lot Nou', label: 'Lot Nou', type: 'string' }
-        ]
+            { key: 'codArticol', label: 'Cod Articol', type: 'string' },
+            { key: 'portii', label: 'Portii', type: 'number' },
+            { key: 'gramajPerPortie', label: 'Gramaj per Portie', type: 'number' },
+            { key: 'um', label: 'UM', type: 'string' },
+            { key: 'totalPortii', label: 'Total Portii', type: 'number' },
+            { key: 'statusReteta', label: 'Status Reteta', type: 'number' },
+            { key: 'dataUltimaModificare', label: 'Data Ultima Modificare', type: 'date' },
+            { key: 'utilizator', label: 'Utilizator', type: 'string' },
+            { key: 'numeReteta', label: 'Nume Reteta', type: 'string' },
+            { key: 'dataDeProducere', label: 'Data de Producere', type: 'date' },
+            { key: 'pretStandard', label: 'Pret Standard', type: 'number' },
+            { key: 'valoareStandard', label: 'Valoare Standard', type: 'number' }
+        ],
+        hasDateFilter: true,
+        hasItemSelection: false
     },
     'fisa-magazie': {
         name: 'Fisa de Magazie (Raport)',
-        endpoint: null,
+        endpoint: `http://localhost:8080/api/intrari-magazie`,
         icon: <File className="w-4 h-4" />,
         columns: [
-            { key: 'Gestiune', label: 'Gestiune', type: 'string' },
-            { key: 'Denumire Gestiune', label: 'Denumire Gestiune', type: 'string' },
-            { key: 'Cod articol', label: 'Cod articol', type: 'string' },
-            { key: 'Denumire articol', label: 'Denumire articol', type: 'string' },
-            { key: 'UM', label: 'UM', type: 'string' },
-            { key: 'Cont', label: 'Cont', type: 'string' },
-            { key: 'Pret', label: 'Pret', type: 'number' },
-            { key: 'Stoc Initial', label: 'Stoc Initial', type: 'number' },
-            { key: 'Cantitate Intrata', label: 'Cantitate Intrata', type: 'number' },
-            { key: 'Cantitate Iesita', label: 'Cantitate Iesita', type: 'number' },
-            { key: 'Stoc Final', label: 'Stoc Final', type: 'number' },
-            { key: 'Valoare stoc initial', label: 'Valoare stoc initial', type: 'number' },
-            { key: 'Valoare intrari', label: 'Valoare intrari', type: 'number' },
-            { key: 'Valoare iesiri', label: 'Valoare iesiri', type: 'number' },
-            { key: 'Valoare stoc final', label: 'Valoare stoc final', type: 'number' },
-            { key: 'Tip doc.', label: 'Tip doc.', type: 'string' },
-            { key: 'Cod doc.', label: 'Cod doc.', type: 'string' },
-            { key: 'Nr. doc', label: 'Nr. doc', type: 'string' },
-            { key: 'Data document', label: 'Data document', type: 'date' },
-            { key: 'Data efectiva', label: 'Data efectiva', type: 'date' },
-            { key: 'Numar Tranzactie', label: 'Numar Tranzactie', type: 'string' },
-            { key: 'Nr.Lot', label: 'Nr.Lot', type: 'string' },
-            { key: 'Tip', label: 'Tip', type: 'string' }
-        ]
+            { key: 'id.codIngredient', label: 'Cod Ingredient', type: 'string' },
+            { key: 'id.dataAchizitie', label: 'Data Achizitie', type: 'date' },
+            { key: 'numeIngredient', label: 'Nume Ingredient', type: 'string' },
+            { key: 'cantitate', label: 'Cantitate', type: 'number' },
+            { key: 'cantitateFolosita', label: 'Cantitate Folosita', type: 'number' },
+            { key: 'pretAchizitie', label: 'Pret Achizitie', type: 'number' },
+            { key: 'pretTotalCantitateCumparata', label: 'Pret Total Cantitate Cumparata', type: 'number' },
+            { key: 'pretTotalCantitateUtilizata', label: 'Pret Total Cantitate Utilizata', type: 'number' }
+        ],
+        hasDateFilter: true,
+        hasItemSelection: true
     },
     'executii-retete': {
         name: 'Executii Retete',
@@ -74,7 +62,9 @@ const dataSourceConfigs = {
             { key: 'dataUltimaModificare', label: 'Data Ultima Modificare', type: 'date' },
             { key: 'utilizator', label: 'Utilizator', type: 'string' },
             { key: 'gramajPerPortie', label: 'Gramaj per Portie', type: 'number' }
-        ]
+        ],
+        hasDateFilter: false,
+        hasItemSelection: false
     },
     'materii-prime': {
         name: 'Materii Prime',
@@ -92,7 +82,9 @@ const dataSourceConfigs = {
             { key: 'tvaVanzare', label: 'TVA Vanzare', type: 'string' },
             { key: 'pretMateriePrima', label: 'Pret Materie Prima', type: 'number' },
             { key: 'stoculActualTotal', label: 'Stocul Actual Total', type: 'number' }
-        ]
+        ],
+        hasDateFilter: false,
+        hasItemSelection: false
     },
     'intrari-magazie': {
         name: 'Intrari Magazie',
@@ -107,7 +99,9 @@ const dataSourceConfigs = {
             { key: 'pretAchizitie', label: 'Pret Achizitie', type: 'number' },
             { key: 'pretTotalCantitateCumparata', label: 'Pret Total Cantitate Cumparata', type: 'number' },
             { key: 'pretTotalCantitateUtilizata', label: 'Pret Total Cantitate Utilizata', type: 'number' }
-        ]
+        ],
+        hasDateFilter: false,
+        hasItemSelection: false
     },
     'meniul-zilei': {
         name: 'Meniul Zilei',
@@ -123,7 +117,9 @@ const dataSourceConfigs = {
             { key: 'dataUltimaModificare', label: 'Data Ultima Modificare', type: 'date' },
             { key: 'utilizator', label: 'Utilizator', type: 'string' },
             { key: 'gramajPerPortie', label: 'Gramaj per Portie', type: 'number' }
-        ]
+        ],
+        hasDateFilter: false,
+        hasItemSelection: false
     },
     'reteta-ingrediente': {
         name: 'Reteta Ingrediente',
@@ -137,24 +133,31 @@ const dataSourceConfigs = {
             { key: 'cantitate', label: 'Cantitate', type: 'number' },
             { key: 'um', label: 'UM', type: 'string' },
             { key: 'necesar', label: 'Necesar', type: 'number' }
-        ]
+        ],
+        hasDateFilter: false,
+        hasItemSelection: false
     }
 };
 
 const Export = () => {
     const [selectedSources, setSelectedSources] = useState<string[]>([]);
     const [columnConfigs, setColumnConfigs] = useState<{ [key: string]: { [key: string]: boolean } }>({});
-    const [data, setData] = useState<{[key: string]: any[]}>({});
+    const [data, setData] = useState<{ [key: string]: any[] }>({});
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
-    const [exportFormat] = useState<'csv' | 'xlsx' | 'xls' | 'pdf'>('xlsx');
-    const [fileName] = useState<string>('export_data');
+    const [exportFormat, setExportFormat] = useState<'csv' | 'xlsx' | 'xls' | 'pdf'>('xlsx');
+    const [fileName, setFileName] = useState<string>('export_data');
     const [previewData, setPreviewData] = useState<any[]>([]);
     const [showPreview, setShowPreview] = useState<boolean>(false);
     const [startDate, setStartDate] = useState<string>('');
     const [endDate, setEndDate] = useState<string>('');
+    const [selectedItem, setSelectedItem] = useState<string>('');
+    const [availableItems, setAvailableItems] = useState<string[]>([]);
+
     const isSpecialReport = selectedSources.includes('situatie-cantitativ-valorica');
-    
+    const needsDateFilter = selectedSources.some(source => dataSourceConfigs[source as keyof typeof dataSourceConfigs]?.hasDateFilter);
+    const needsItemSelection = selectedSources.some(source => dataSourceConfigs[source as keyof typeof dataSourceConfigs]?.hasItemSelection);
+
     useEffect(() => {
         const newColumnConfigs: { [key: string]: { [key: string]: boolean } } = {};
         selectedSources.forEach(source => {
@@ -171,21 +174,36 @@ const Export = () => {
         });
         setColumnConfigs(newColumnConfigs);
     }, [selectedSources]);
-    
-    const handleSourceToggle = (source: string) => {
-        const isExclusive = source === 'situatie-cantitativ-valorica';
-        if (isExclusive) {
-            setSelectedSources(prev => prev.includes(source) ? [] : [source]);
-        } else {
-            setSelectedSources(prev => {
-                const newSelection = prev.filter(s => s !== 'situatie-cantitativ-valorica');
-                if (newSelection.includes(source)) {
-                    return newSelection.filter(s => s !== source);
-                } else {
-                    return [...newSelection, source];
+
+    useEffect(() => {
+        const loadAvailableItems = async () => {
+            if (needsItemSelection && selectedSources.includes('fisa-magazie')) {
+                try {
+                    const response = await fetch('http://localhost:8080/api/intrari-magazie');
+                    if (response.ok) {
+                        const responseData = await response.json();
+                        let processedData = Array.isArray(responseData) ? responseData : responseData.data || [];
+
+                        const uniqueItems = [...new Set(processedData.map((item: any) =>
+                            getNestedValue(item, 'numeIngredient') || getNestedValue(item, 'id.codIngredient')
+                        ).filter(Boolean))];
+
+                        setAvailableItems(uniqueItems as string[]);
+                    }
+                } catch (error) {
+                    console.error('Failed to load available items:', error);
                 }
-            });
-        }
+            }
+        };
+
+        loadAvailableItems();
+    }, [selectedSources, needsItemSelection]);
+
+    const handleSourceToggle = (source: string) => {
+        setSelectedSources(prev => prev.includes(source) ? [] : [source]);
+        setSelectedItem('');
+        setStartDate('');
+        setEndDate('');
     };
 
     const handleColumnToggle = (source: string, columnKey: string) => {
@@ -201,14 +219,32 @@ const Export = () => {
     const fetchData = async () => {
         setLoading(true);
         setError(null);
-        
+
         try {
             const sourcesToFetch = isSpecialReport ? ['intrari-magazie', 'materii-prime'] : selectedSources;
             const fetchPromises = sourcesToFetch.map(async (source) => {
                 const config = dataSourceConfigs[source as keyof typeof dataSourceConfigs];
                 if (!config.endpoint) return { source, data: [] };
 
-                const response = await fetch(config.endpoint, {
+                let url = config.endpoint;
+                const params = new URLSearchParams();
+
+                // Add date filters if needed
+                if (config.hasDateFilter && startDate && endDate) {
+                    params.append('startDate', startDate);
+                    params.append('endDate', endDate);
+                }
+
+                // Add item filter if needed
+                if (config.hasItemSelection && selectedItem) {
+                    params.append('item', selectedItem);
+                }
+
+                if (params.toString()) {
+                    url += '?' + params.toString();
+                }
+
+                const response = await fetch(url, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
@@ -216,14 +252,14 @@ const Export = () => {
                     },
                     mode: 'cors',
                 });
-                
+
                 if (!response.ok) {
                     const errorText = await response.text();
                     throw new Error(`HTTP ${response.status}: ${response.statusText}. ${errorText}`);
                 }
-                
+
                 const responseData = await response.json();
-                
+
                 let processedData;
                 if (Array.isArray(responseData)) {
                     processedData = responseData;
@@ -234,19 +270,19 @@ const Export = () => {
                 } else {
                     processedData = [];
                 }
-                
+
                 return { source, data: processedData };
             });
 
             const results = await Promise.all(fetchPromises);
-            const newData: {[key: string]: any[]} = {};
-            
+            const newData: { [key: string]: any[] } = {};
+
             results.forEach(({ source, data }) => {
                 newData[source] = data;
             });
 
             setData(newData);
-            
+
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
             setError('Failed to fetch data: ' + errorMessage);
@@ -254,7 +290,7 @@ const Export = () => {
             setLoading(false);
         }
     };
-    
+
     const getNestedValue = (obj: any, path: string) => {
         try {
             return path.split('.').reduce((current, key) => {
@@ -269,15 +305,15 @@ const Export = () => {
     const prepareSituatieStocuri = () => {
         const intrareMagazie = data['intrari-magazie'] || [];
         const materiiPrime = data['materii-prime'] || [];
-        
+
         const filteredIntrari = intrareMagazie.filter(item => {
             const dataAchizitie = getNestedValue(item, 'id.dataAchizitie');
             if (!startDate || !endDate || !dataAchizitie) return true;
-            
+
             const itemDate = new Date(dataAchizitie);
             const start = new Date(startDate);
             const end = new Date(endDate);
-            
+
             return itemDate >= start && itemDate <= end;
         });
 
@@ -289,9 +325,9 @@ const Export = () => {
             const cantitateFolosita = getNestedValue(intrare, 'cantitateFolosita') || 0;
             const pretAchizitie = getNestedValue(intrare, 'pretAchizitie') || 0;
             const numeIngredient = getNestedValue(intrare, 'numeIngredient') || '';
-            
+
             const cantitateRamasa = cantitate - cantitateFolosita;
-            
+
             if (!stocuriMap.has(codIngredient)) {
                 stocuriMap.set(codIngredient, {
                     codArticol: codIngredient,
@@ -303,7 +339,7 @@ const Export = () => {
                     gestiune: '32'
                 });
             }
-            
+
             const item = stocuriMap.get(codIngredient);
             item.cantitateRamasa += cantitateRamasa;
             item.preturi.push(pretAchizitie);
@@ -331,10 +367,10 @@ const Export = () => {
 
     const prepareExportData = () => {
         const combinedData: any[] = [];
-        
+
         if (isSpecialReport) {
             const situatieData = prepareSituatieStocuri();
-            
+
             if (situatieData.length > 0) {
                 const headerInfo = {
                     'Nr. Crt.': 'UNIVERSITATEA TEHNICA DIN CLUJ-NAPOCA',
@@ -383,24 +419,80 @@ const Export = () => {
                 'UM': '', 'Cantitate': '', 'Pret': '', 'Valoare': totalValue.toFixed(2)
             };
             combinedData.push(grandTotalRow);
-            
+
         } else {
+            // Collect all unique column headers from all selected sources
+            const allColumns = new Set<string>();
+            allColumns.add('_source'); // Always include the source column first
+
             selectedSources.forEach(source => {
-                const sourceData = data[source] || [];
+                const sourceConfig = dataSourceConfigs[source as keyof typeof dataSourceConfigs];
+                const activeColumns = sourceConfig.columns.filter(col => columnConfigs[source]?.[col.key]);
+                activeColumns.forEach(col => {
+                    allColumns.add(col.label);
+                });
+            });
+
+            // Process each source
+            selectedSources.forEach(source => {
+                let sourceData = data[source] || [];
                 const sourceConfig = dataSourceConfigs[source as keyof typeof dataSourceConfigs];
                 const activeColumns = sourceConfig.columns.filter(col => columnConfigs[source]?.[col.key]);
 
+                if (source === 'fisa-magazie') {
+                    sourceData = sourceData.filter(item => {
+                        let passesItemFilter = true;
+                        let passesDateFilter = true;
+
+                        if (selectedItem) {
+                            const itemName = getNestedValue(item, 'numeIngredient') || getNestedValue(item, 'id.cod_ingredient');
+                            passesItemFilter = itemName === selectedItem;
+                        }
+
+                        if (startDate && endDate) {
+                            const itemDate = getNestedValue(item, 'dataAchizitie') || getNestedValue(item, 'id.data_achizitie');
+                            if (itemDate) {
+                                const dateObj = new Date(itemDate);
+                                const startDateObj = new Date(startDate);
+                                const endDateObj = new Date(endDate);
+                                passesDateFilter = dateObj >= startDateObj && dateObj <= endDateObj;
+                            }
+                        }
+                        return passesItemFilter && passesDateFilter;
+                    });
+                } else if (source === 'meniu-zilei-raport' && startDate) {
+                    sourceData = sourceData.filter(item => {
+                        const itemDate = getNestedValue(item, 'data_de_producere') || getNestedValue(item, 'data_ultima_modificare');
+                        if (itemDate && startDate) {
+                            const dateObj = new Date(itemDate);
+                            const selectedDateObj = new Date(startDate);
+                            return dateObj.toDateString() === selectedDateObj.toDateString();
+                        }
+                        return true;
+                    });
+                }
+
                 sourceData.forEach(item => {
-                    const exportItem: any = { _source: sourceConfig.name };
+                    const exportItem: any = {};
+
+                    allColumns.forEach(colName => {
+                        exportItem[colName] = '';
+                    });
+
+                    // Set the source
+                    exportItem['_source'] = sourceConfig.name;
+
+                    // Populate only the columns that belong to this source
                     activeColumns.forEach(col => {
                         const value = getNestedValue(item, col.key);
-                        exportItem[col.label] = value !== null && value !== undefined ? value : '';
+                        exportItem[col.label] = value ?? '';
                     });
+
                     combinedData.push(exportItem);
                 });
             });
         }
-        
+
         return combinedData;
     };
 
@@ -416,7 +508,7 @@ const Export = () => {
         const headers = Object.keys(data[0]);
         const csvContent = [
             headers.join(','),
-            ...data.map(row => 
+            ...data.map(row =>
                 headers.map(header => {
                     const value = row[header] ?? '';
                     const stringValue = String(value);
@@ -449,7 +541,7 @@ const Export = () => {
         const printContent = `
             <html>
                 <head>
-                    <title>Situatia Cantitativ-Valorica</title>
+                    <title>Export Data</title>
                     <style>
                         table { border-collapse: collapse; width: 100%; font-size: 12px; }
                         th, td { border: 1px solid #ddd; padding: 6px; text-align: left; }
@@ -490,7 +582,7 @@ const Export = () => {
 
     const handleExport = () => {
         const exportData = prepareExportData();
-        
+
         if (exportData.length === 0) {
             setError('No data to export');
             return;
@@ -531,28 +623,17 @@ const Export = () => {
                         <h3 className="text-lg font-medium text-gray-800 mb-4">Selecteaza Sursa de Date</h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                             {Object.entries(dataSourceConfigs).map(([key, config]) => {
-                                const isExclusive = key === 'situatie-cantitativ-valorica';
                                 return (
                                     <label
                                         key={key}
                                         className="flex items-center p-4 border border-gray-300 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
-                                    >
-                                        {isExclusive ? (
-                                            <input
-                                                type="radio"
-                                                name="exclusiveSource"
-                                                checked={selectedSources.includes(key)}
-                                                onChange={() => handleSourceToggle(key)}
-                                                className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500"
-                                            />
-                                        ) : (
-                                            <input
-                                                type="checkbox"
-                                                checked={selectedSources.includes(key)}
-                                                onChange={() => handleSourceToggle(key)}
-                                                className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
-                                            />
-                                        )}
+                                    >  <input
+                                            type="radio"
+                                            name="exclusiveSource"
+                                            checked={selectedSources.includes(key)}
+                                            onChange={() => handleSourceToggle(key)}
+                                            className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500"
+                                        />
                                         <div className="ml-3 flex items-center">
                                             {config.icon}
                                             <span className="ml-2 text-sm font-medium text-gray-900">{config.name}</span>
@@ -563,13 +644,15 @@ const Export = () => {
                         </div>
                     </div>
 
-                    {isSpecialReport ? (
+                    {needsDateFilter && (selectedSources.includes('meniu-zilei-raport') || selectedSources.includes('situatie-cantitativ-valorica') || selectedSources.includes('fisa-magazie')) &&(
                         <div>
-                            <h3 className="text-lg font-medium text-gray-800 mb-4">Perioada Export</h3>
+                            <h3 className="text-lg font-medium text-gray-800 mb-4">
+                                {selectedSources.includes('meniu-zilei-raport') ? 'Selecteaza Data' : 'Perioada Export'}
+                            </h3>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Data Inceput
+                                        {selectedSources.includes('meniu-zilei-raport') ? 'Data' : 'Data Inceput'}
                                     </label>
                                     <input
                                         type="date"
@@ -578,112 +661,172 @@ const Export = () => {
                                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                     />
                                 </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Data Sfarsit
-                                    </label>
-                                    <input
-                                        type="date"
-                                        value={endDate}
-                                        onChange={e => setEndDate(e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                    />
-                                </div>
+                                {!selectedSources.includes('meniu-zilei-raport') && (
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            Data Sfarsit
+                                        </label>
+                                        <input
+                                            type="date"
+                                            value={endDate}
+                                            onChange={e => setEndDate(e.target.value)}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        />
+                                    </div>
+                                )}
                             </div>
                         </div>
-                    ) : (
-                        selectedSources.length > 0 && (
-                            <div>
-                                <h3 className="text-lg font-medium text-gray-800 mb-4">Configureaza Coloanele</h3>
-                                <div className="space-y-6">
-                                    {selectedSources.map(source => {
-                                        const config = dataSourceConfigs[source as keyof typeof dataSourceConfigs];
-                                        return (
-                                            <div key={source} className="border border-gray-200 rounded-lg p-4">
-                                                <div className="flex items-center justify-between mb-4">
-                                                    <h4 className="font-medium text-gray-800 flex items-center">
-                                                        {config.icon}
-                                                        <span className="ml-2">{config.name}</span>
-                                                    </h4>
-                                                    <div className="flex space-x-2">
-                                                        <button
-                                                            onClick={() => {
-                                                                const newConfig = { ...columnConfigs };
-                                                                config.columns.forEach(col => {
-                                                                    newConfig[source][col.key] = true;
-                                                                });
-                                                                setColumnConfigs(newConfig);
-                                                            }}
-                                                            className="text-sm text-blue-600 hover:text-blue-800"
-                                                        >
-                                                            Selecteaza Tot
-                                                        </button>
-                                                        <button
-                                                            onClick={() => {
-                                                                const newConfig = { ...columnConfigs };
-                                                                config.columns.forEach(col => {
-                                                                    newConfig[source][col.key] = false;
-                                                                });
-                                                                setColumnConfigs(newConfig);
-                                                            }}
-                                                            className="text-sm text-gray-600 hover:text-gray-800"
-                                                        >
-                                                            Deselecteaza Tot
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                                                    {config.columns.map(column => (
-                                                        <label key={column.key} className="flex items-center">
-                                                            <input
-                                                                type="checkbox"
-                                                                checked={columnConfigs[source]?.[column.key] || false}
-                                                                onChange={() => handleColumnToggle(source, column.key)}
-                                                                className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
-                                                            />
-                                                            <span className="ml-2 text-sm text-gray-700">{column.label}</span>
-                                                        </label>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-                        )
                     )}
 
-                    <div className="flex flex-wrap gap-4 pt-6 border-t border-gray-200">
-                        <button
-                            onClick={fetchData}
-                            disabled={loading || selectedSources.length === 0}
-                            className="bg-blue-500 hover:bg-blue-600 disabled:bg-blue-300 text-white px-6 py-2 rounded-lg flex items-center gap-2 transition-colors duration-200"
-                        >
-                            {loading ? (
-                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                            ) : (
-                                <Database className="w-4 h-4" />
-                            )}
-                            {loading ? 'Se incarca...' : 'Incarca Date'}
-                        </button>
+                    {needsItemSelection && (
+                        <div>
+                            <h3 className="text-lg font-medium text-gray-800 mb-4">Selecteaza Articol</h3>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Articol
+                                </label>
+                                <select
+                                    value={selectedItem}
+                                    onChange={e => setSelectedItem(e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                >
+                                    <option value="">Toate articolele</option>
+                                    {availableItems.map(item => (
+                                        <option key={item} value={item}>{item}</option>
+                                    ))}
+                                </select>
+                            </div>
+                        </div>
+                    )}
 
+                    {!isSpecialReport && selectedSources.length > 0 && (
+                        <div>
+                            <h3 className="text-lg font-medium text-gray-800 mb-4">Configureaza Coloanele</h3>
+                            <div className="space-y-6">
+                                {selectedSources.map(source => {
+                                    const config = dataSourceConfigs[source as keyof typeof dataSourceConfigs];
+                                    return (
+                                        <div key={source} className="border border-gray-200 rounded-lg p-4">
+                                            <div className="flex items-center justify-between mb-4">
+                                                <h4 className="font-medium text-gray-800 flex items-center">
+                                                    {config.icon}
+                                                    <span className="ml-2">{config.name}</span>
+                                                </h4>
+                                                <div className="flex space-x-2">
+                                                    <button
+                                                        onClick={() => {
+                                                            const newConfig = { ...columnConfigs };
+                                                            config.columns.forEach(col => {
+                                                                newConfig[source][col.key] = true;
+                                                            });
+                                                            setColumnConfigs(newConfig);
+                                                        }}
+                                                        className="text-sm text-blue-600 hover:text-blue-800"
+                                                    >
+                                                        Selecteaza Tot
+                                                    </button>
+                                                    <button
+                                                        onClick={() => {
+                                                            const newConfig = { ...columnConfigs };
+                                                            config.columns.forEach(col => {
+                                                                newConfig[source][col.key] = false;
+                                                            });
+                                                            setColumnConfigs(newConfig);
+                                                        }}
+                                                        className="text-sm text-gray-600 hover:text-gray-800"
+                                                    >
+                                                        Deselecteaza Tot
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                                                {config.columns.map(column => (
+                                                    <label key={column.key} className="flex items-center">
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={columnConfigs[source]?.[column.key] || false}
+                                                            onChange={() => handleColumnToggle(source, column.key)}
+                                                            className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                                                        />
+                                                        <span className="ml-2 text-sm text-gray-700">{column.label}</span>
+                                                    </label>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    )}
+
+                    <div className=" pt-6 border-t border-gray-200">
+                        <div className="flex flex-wrap gap-4">
+                            <button
+                                onClick={fetchData}
+                                disabled={loading || selectedSources.length === 0}
+                                className="bg-blue-500 hover:bg-blue-600 disabled:bg-blue-300 text-white px-6 py-2 rounded-lg flex items-center gap-2 transition-colors duration-200"
+                            >
+                                {loading ? (
+                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                ) : (
+                                    <Database className="w-4 h-4" />
+                                )}
+                                {loading ? 'Se incarca...' : 'Incarca Date'}
+                            </button>
+
+                            {(isSpecialReport && data['intrari-magazie'] && data['materii-prime']) || (!isSpecialReport && Object.keys(data).length > 0) ? (
+                                <>
+                                    <button
+                                        onClick={generatePreview}
+                                        className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg flex items-center gap-2 transition-colors duration-200"
+                                    >
+                                        <Eye className="w-4 h-4" />
+                                        Previzualizare
+                                    </button>
+                                </>
+                            ) : null}
+                        </div>
                         {(isSpecialReport && data['intrari-magazie'] && data['materii-prime']) || (!isSpecialReport && Object.keys(data).length > 0) ? (
                             <>
-                                <button
-                                    onClick={generatePreview}
-                                    className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg flex items-center gap-2 transition-colors duration-200"
-                                >
-                                    <Eye className="w-4 h-4" />
-                                    Previzualizare
-                                </button>
 
-                                <button
-                                    onClick={handleExport}
-                                    className="bg-purple-500 hover:bg-purple-600 text-white px-6 py-2 rounded-lg flex items-center gap-2 transition-colors duration-200"
-                                >
-                                    <Download className="w-4 h-4" />
-                                    Export {exportFormat.toUpperCase()}
-                                </button>
+                                <div className="flex items-center gap-4">
+                                    <div className="flex flex-col">
+                                        <label className="text-sm font-medium text-gray-700 mb-1">
+                                            Nume Fisier
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={fileName}
+                                            onChange={e => setFileName(e.target.value)}
+                                            placeholder="export_data"
+                                            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                                        />
+                                    </div>
+
+                                    <div className="flex flex-col">
+                                        <label className="text-sm font-medium text-gray-700 mb-1">
+                                            Format Export
+                                        </label>
+                                        <select
+                                            value={exportFormat}
+                                            onChange={e => setExportFormat(e.target.value as 'csv' | 'xlsx' | 'xls' | 'pdf')}
+                                            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                                        >
+                                            <option value="xlsx">Excel (.xlsx)</option>
+                                            <option value="xls">Excel (.xls)</option>
+                                            <option value="csv">CSV (.csv)</option>
+                                            <option value="pdf">PDF (.pdf)</option>
+                                        </select>
+                                    </div>
+
+                                    <button
+                                        onClick={handleExport}
+                                        className="bg-purple-500 hover:bg-purple-600 text-white px-6 py-2 rounded-lg flex items-center gap-2 transition-colors duration-200 mt-6"
+                                    >
+                                        <Download className="w-4 h-4" />
+                                        Export {exportFormat.toUpperCase()}
+                                    </button>
+                                </div>
                             </>
                         ) : null}
                     </div>
@@ -743,16 +886,20 @@ const Export = () => {
                                         <div>Total articole stoc: {prepareSituatieStocuri().length}</div>
                                     </div>
                                 ) : (
-                                    Object.entries(data).map(([source, items]) => (
-                                        <div key={source}>{dataSourceConfigs[source as keyof typeof dataSourceConfigs].name}: {items.length} inregistrari</div>
-                                    ))
+                                    <div>
+                                        {Object.entries(data).map(([source, items]) => (
+                                            <div key={source}>{dataSourceConfigs[source as keyof typeof dataSourceConfigs].name}: {items.length} inregistrari</div>
+                                        ))}
+                                        {selectedItem && <div>Articol selectat: {selectedItem}</div>}
+                                        {startDate && endDate && <div>Perioada: {startDate} - {endDate}</div>}
+                                    </div>
                                 )}
                             </div>
                         </div>
                     )}
                 </div>
             </div>
-        </div>
+        </div >
     );
 };
 

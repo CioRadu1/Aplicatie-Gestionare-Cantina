@@ -371,13 +371,79 @@ const Retete = () => {
             return [];
         }
     };
+    const calculateMaxPossiblePortions = async (codArticol: string): Promise<number> => {
+        try {
+            const currentItem = data.find(item => item.codArticol === codArticol);
+            if (!currentItem) return 0;
+
+            const ingredientsResponse = await axios.get(`http://localhost:8080/api/reteta-ingrediente/ingrediente?codReteta=${codArticol}`);
+            const recipeIngredients = ingredientsResponse.data;
+
+            if (recipeIngredients.length === 0) return 0;
+
+            let maxPortions = Infinity;
+            const basePortii = currentItem.portii || 1;
+
+            for (const ingredient of recipeIngredients) {
+                const perPortionQty = ingredient.necesar / basePortii;
+                if (perPortionQty <= 0) continue;
+
+                const inventoryEntries = await getInventoryEntries(ingredient.id.codIngredient);
+                const totalAvailable = inventoryEntries.reduce((sum, entry) =>
+                    sum + (entry.cantitate - entry.cantitateFolosita), 0
+                );
+
+                const possiblePortions = Math.floor(totalAvailable / perPortionQty);
+                maxPortions = Math.min(maxPortions, possiblePortions);
+            }
+
+            return maxPortions === Infinity ? 0 : Math.max(0, maxPortions);
+        } catch (err) {
+            console.error('Error calculating max portions:', err);
+            return 0;
+        }
+    };
+
+
     const incrementPortii = async (codArticol: string, currentValue: number) => {
         const newValue = currentValue + 1;
         const warnings = await checkInventoryAvailability(codArticol, 1);
+
         if (warnings.length > 0) {
-            setInventoryWarnings(warnings);
-            setShowInventoryModal(true);
+            // Calculate max possible portions and auto-adjust
+            const maxPossible = await calculateMaxPossiblePortions(codArticol);
+
+            if (maxPossible > currentValue) {
+                // Set to max possible instead of showing error
+                setLocalPortiiValues(prev => ({
+                    ...prev,
+                    [codArticol]: maxPossible.toString()
+                }));
+
+                if (maxPossible > 0) {
+                    setData(prev =>
+                        prev.map(item =>
+                            item.codArticol === codArticol
+                                ? { ...item, statusReteta: 1 }
+                                : item
+                        )
+                    );
+                    setFilteredData(prev =>
+                        prev.map(item =>
+                            item.codArticol === codArticol
+                                ? { ...item, statusReteta: 1 }
+                                : item
+                        )
+                    );
+                }
+            } else {
+                // Show warning only if we can't even make one more portion
+                setInventoryWarnings(warnings);
+                setShowInventoryModal(true);
+            }
+            return;
         }
+
         if (newValue > 0) {
             setData(prev =>
                 prev.map(item =>
@@ -386,7 +452,6 @@ const Retete = () => {
                         : item
                 )
             );
-
             setFilteredData(prev =>
                 prev.map(item =>
                     item.codArticol === codArticol
@@ -395,6 +460,7 @@ const Retete = () => {
                 )
             );
         }
+
         setLocalPortiiValues(prev => ({
             ...prev,
             [codArticol]: newValue.toString()
@@ -407,6 +473,7 @@ const Retete = () => {
 
         const currentItem = data.find(item => item.codArticol === codArticol);
         if (!currentItem) return;
+
         const newValue = parseInt(value);
         const currentValue = currentItem.totalPortii;
         const difference = newValue - currentValue;
@@ -414,8 +481,28 @@ const Retete = () => {
         if (difference > 0) {
             const warnings = await checkInventoryAvailability(codArticol, difference);
             if (warnings.length > 0) {
-                setInventoryWarnings(warnings);
-                setShowInventoryModal(true);
+                const maxPossible = await calculateMaxPossiblePortions(codArticol);
+
+                if (maxPossible >= currentValue) {
+                    const adjustedValue = Math.min(newValue, maxPossible);
+                    setLocalPortiiValues(prev => ({
+                        ...prev,
+                        [codArticol]: adjustedValue.toString()
+                    }));
+
+                    if (adjustedValue !== newValue) {
+                        setInventoryWarnings([{
+                            ingredient: "Auto-adjustat",
+                            needed: newValue,
+                            available: adjustedValue
+                        }]);
+                        setShowInventoryModal(true);
+                    }
+                } else {
+                    setInventoryWarnings(warnings);
+                    setShowInventoryModal(true);
+                }
+                return;
             }
         }
 
@@ -423,7 +510,6 @@ const Retete = () => {
             ...prev,
             [codArticol]: value
         }));
-
     };
 
     const decrementPortii = (codArticol: string, currentValue: number) => {
@@ -969,11 +1055,25 @@ const Retete = () => {
 
                             <div className="space-y-2 mb-6">
                                 {inventoryWarnings.map((warning, index) => (
-                                    <div key={index} className="bg-red-50 border border-red-200 rounded p-3">
-                                        <p className="font-medium text-red-800">{warning.ingredient}</p>
-                                        <p className="text-sm text-red-600">
-                                            Necesar: {warning.needed.toFixed(2)} | Disponibil: {warning.available.toFixed(2)}
-                                        </p>
+                                    <div key={index} className={`border rounded p-3 ${warning.ingredient === "Auto-adjustat"
+                                            ? "bg-yellow-50 border-yellow-200"
+                                            : "bg-red-50 border-red-200"
+                                        }`}>
+                                        {warning.ingredient === "Auto-adjustat" ? (
+                                            <>
+                                                <p className="font-medium text-yellow-800">Valoare ajustată automat</p>
+                                                <p className="text-sm text-yellow-600">
+                                                    Cerut: {warning.needed} | Maxim posibil: {warning.available}
+                                                </p>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <p className="font-medium text-red-800">{warning.ingredient}</p>
+                                                <p className="text-sm text-red-600">
+                                                    Necesar: {warning.needed.toFixed(2)} | Disponibil: {warning.available.toFixed(2)}
+                                                </p>
+                                            </>
+                                        )}
                                     </div>
                                 ))}
                             </div>

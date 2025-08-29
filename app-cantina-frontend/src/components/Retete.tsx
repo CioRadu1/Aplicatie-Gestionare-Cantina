@@ -1156,7 +1156,7 @@ const Retete = () => {
                                         ? 'Modifica Reteta'
                                         : modalType === 'delete'
                                             ? 'Sterge Reteta'
-                                            : 'Modifica Ingredient'}
+                                            : 'Modifica Ingrediente'}
                             </h2>
                             <button
                                 onClick={closeModal}

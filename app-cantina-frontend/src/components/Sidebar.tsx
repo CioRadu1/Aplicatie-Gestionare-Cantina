@@ -17,12 +17,10 @@ const Sidebar = ({activePage, onPageChange} : SidebarProps) => {
 
   return (
     <div className="flex h-screen bg-gray-50">
-      {/* Sidebar */}
       <div className="w-64 bg-white shadow-lg flex flex-col">
-        {/* Top Section - Icon and Title */}
         <div className="p-6 border-b border-gray-200">
           <div className="flex flex-col items-center text-center">
-            {/* Placeholder icon - you can replace this */}
+
             <div className="w-30 h-30 flex items-center justify-center mb-3">
               <img src="logo.png" />
             </div>
@@ -30,7 +28,6 @@ const Sidebar = ({activePage, onPageChange} : SidebarProps) => {
           </div>
         </div>
 
-        {/* Navigation Menu */}
         <nav className="flex-1 p-4">
           <ul className="space-y-2">
             {menuItems.map((item) => {
@@ -58,7 +55,6 @@ const Sidebar = ({activePage, onPageChange} : SidebarProps) => {
           </ul>
         </nav>
 
-        {/* Settings at Bottom */}
         <div className="p-4 border-t border-gray-200">
           <button 
             onClick={() => onPageChange('Export')}

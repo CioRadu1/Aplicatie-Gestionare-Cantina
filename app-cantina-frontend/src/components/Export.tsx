@@ -229,13 +229,11 @@ const Export = () => {
                 let url = config.endpoint;
                 const params = new URLSearchParams();
 
-                // Add date filters if needed
                 if (config.hasDateFilter && startDate && endDate) {
                     params.append('startDate', startDate);
                     params.append('endDate', endDate);
                 }
 
-                // Add item filter if needed
                 if (config.hasItemSelection && selectedItem) {
                     params.append('item', selectedItem);
                 }
@@ -421,9 +419,8 @@ const Export = () => {
             combinedData.push(grandTotalRow);
 
         } else {
-            // Collect all unique column headers from all selected sources
             const allColumns = new Set<string>();
-            allColumns.add('_source'); // Always include the source column first
+            allColumns.add('_source');
 
             selectedSources.forEach(source => {
                 const sourceConfig = dataSourceConfigs[source as keyof typeof dataSourceConfigs];
@@ -433,7 +430,6 @@ const Export = () => {
                 });
             });
 
-            // Process each source
             selectedSources.forEach(source => {
                 let sourceData = data[source] || [];
                 const sourceConfig = dataSourceConfigs[source as keyof typeof dataSourceConfigs];
@@ -479,10 +475,8 @@ const Export = () => {
                         exportItem[colName] = '';
                     });
 
-                    // Set the source
                     exportItem['_source'] = sourceConfig.name;
 
-                    // Populate only the columns that belong to this source
                     activeColumns.forEach(col => {
                         const value = getNestedValue(item, col.key);
                         exportItem[col.label] = value ?? '';

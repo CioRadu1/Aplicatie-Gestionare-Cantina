@@ -410,11 +410,9 @@ const Retete = () => {
         const warnings = await checkInventoryAvailability(codArticol, 1);
 
         if (warnings.length > 0) {
-            // Calculate max possible portions and auto-adjust
             const maxPossible = await calculateMaxPossiblePortions(codArticol);
 
             if (maxPossible > currentValue) {
-                // Set to max possible instead of showing error
                 setLocalPortiiValues(prev => ({
                     ...prev,
                     [codArticol]: maxPossible.toString()
@@ -437,7 +435,6 @@ const Retete = () => {
                     );
                 }
             } else {
-                // Show warning only if we can't even make one more portion
                 setInventoryWarnings(warnings);
                 setShowInventoryModal(true);
             }
@@ -1230,23 +1227,6 @@ const Retete = () => {
                                             </ul>
                                         )}
                                     </div>
-
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Cantitate
-                                        </label>
-                                        <input
-                                            type="number"
-                                            name="cantitate"
-                                            value={ingredientFormData.cantitate}
-                                            onChange={handleIngredientInputChange}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                            step="0.0001"
-                                            required
-                                            onClick={(e) => e.currentTarget.select()}
-                                        />
-                                    </div>
-
                                     <div className="md:col-span-2">
                                         <label className="block text-sm font-medium text-gray-700 mb-1">
                                             Necesar

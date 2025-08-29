@@ -296,7 +296,7 @@ const IntrariMagazie = () => {
     return (
         <div className="p-6">
             <div className="bg-white rounded-xl shadow-lg">
-                {/* Header */}
+
                 <div className="px-6 py-4 border-b border-gray-200">
                     <div className="flex justify-between items-center mb-4">
                         <h1 className="text-2xl font-bold text-gray-800">Intrari Magazie</h1>
@@ -309,7 +309,6 @@ const IntrariMagazie = () => {
                         </button>
                     </div>
 
-                    {/* Search Bar */}
                     <div className="flex items-center space-x-4">
                         <div className="relative flex-1 max-w-md">
                             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -327,7 +326,6 @@ const IntrariMagazie = () => {
                     </div>
                 </div>
 
-                {/* Table */}
                 <div className="overflow-x-auto">
                     <table className="w-full">
                         <thead className="bg-gray-50">
@@ -432,7 +430,6 @@ const IntrariMagazie = () => {
                     )}
                 </div>
 
-                {/* Pagination */}
                 {totalPages > 1 && (
                     <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
                         <div className="flex items-center text-sm text-gray-500">
@@ -487,11 +484,9 @@ const IntrariMagazie = () => {
                 )}
             </div>
 
-            {/* Modal */}
             {showModal && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
                     <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-                        {/* Modal Header */}
                         <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
                             <h2 className="text-xl font-bold text-gray-800">
                                 {modalType === 'add' ? 'Adauga Intrare Magazie' :
@@ -506,7 +501,6 @@ const IntrariMagazie = () => {
                             </button>
                         </div>
 
-                        {/* Modal Content */}
                         <div className="p-6">
                             {modalType === 'delete' ? (
                                 <div className="text-center">
@@ -532,7 +526,6 @@ const IntrariMagazie = () => {
                                 </div>
                             ) : (
                                 <div className="grid grid-cols-1 gap-4">
-                                    {/* Ingredient Selection with Dropdown */}
                                     <div className="relative">
                                         <label className="block text-sm font-medium text-gray-700 mb-1">
                                             Nume Ingredient *
@@ -553,7 +546,6 @@ const IntrariMagazie = () => {
                                             <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                                         </div>
 
-                                        {/* Dropdown */}
                                         {showDropdown && (
                                             <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
                                                 {filteredMateriiPrime.length > 0 ? (
@@ -580,7 +572,7 @@ const IntrariMagazie = () => {
                                         )}
                                     </div>
 
-                                    {/* Date Field */}
+
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1">
                                             Data Achizitie *
@@ -595,7 +587,6 @@ const IntrariMagazie = () => {
                                         />
                                     </div>
 
-                                    {/* Quantity Field */}
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1">
                                             Cantitate Achizitionata *
@@ -613,7 +604,6 @@ const IntrariMagazie = () => {
                                         />
                                     </div>
 
-                                    {/* Price Field */}
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1">
                                             Pret Achizitie Materie Prima *
@@ -631,7 +621,6 @@ const IntrariMagazie = () => {
                                         />
                                     </div>
 
-                                    {/* Calculated Total */}
                                     {formData.cantitate && formData.pretAchizitie && (
                                         <div className="bg-gray-50 p-4 rounded-lg">
                                             <div className="text-sm font-medium text-gray-700">

@@ -161,6 +161,38 @@ const MeniuZilei = () => {
         });
     }, [debouncedPortiiValues]);
 
+    const calculateMaxPossiblePortions = async (codArticol: string): Promise<number> => {
+        try {
+            const currentItem = data.find(item => item.codArticol === codArticol);
+            if (!currentItem) return 0;
+
+            const ingredientsResponse = await axios.get(`http://localhost:8080/api/reteta-ingrediente/ingrediente?codReteta=${codArticol}`);
+            const recipeIngredients = ingredientsResponse.data;
+
+            if (recipeIngredients.length === 0) return 0;
+
+            let maxPortions = Infinity;
+            const basePortii = currentItem.portii || 1;
+
+            for (const ingredient of recipeIngredients) {
+                const perPortionQty = ingredient.necesar / basePortii;
+                if (perPortionQty <= 0) continue;
+
+                const inventoryEntries = await getInventoryEntries(ingredient.id.codIngredient);
+                const totalAvailable = inventoryEntries.reduce((sum, entry) =>
+                    sum + (entry.cantitate - entry.cantitateFolosita), 0
+                );
+
+                const possiblePortions = Math.floor(totalAvailable / perPortionQty);
+                maxPortions = Math.min(maxPortions, possiblePortions);
+            }
+
+            return maxPortions === Infinity ? 0 : Math.max(0, maxPortions);
+        } catch (err) {
+            console.error('Error calculating max portions:', err);
+            return 0;
+        }
+    };
 
     const getInventoryEntries = async (codIngredient: string): Promise<IntraresMagazie[]> => {
         try {
@@ -419,27 +451,39 @@ const MeniuZilei = () => {
 
         const warnings = await checkInventoryAvailability(codArticol, 1);
         if (warnings.length > 0) {
-            setInventoryWarnings(warnings);
-            setShowInventoryModal(true);
-        }
+            const maxPossible = await calculateMaxPossiblePortions(codArticol);
 
-        if (newValue > 0) {
-            setData(prev =>
-                prev.map(item =>
-                    item.codArticol === codArticol
-                        ? { ...item, statusReteta: 1 }
-                        : item
-                )
-            );
+            if (maxPossible > currentValue) {
+                setLocalPortiiValues(prev => ({
+                    ...prev,
+                    [codArticol]: maxPossible.toString()
+                }));
 
-            setFilteredData(prev =>
-                prev.map(item =>
-                    item.codArticol === codArticol
-                        ? { ...item, statusReteta: 1 }
-                        : item
-                )
-            );
+                if (maxPossible > 0) {
+                    setData(prev =>
+                        prev.map(item =>
+                            item.codArticol === codArticol
+                                ? { ...item, statusReteta: 1 }
+                                : item
+                        )
+                    );
+                    setFilteredData(prev =>
+                        prev.map(item =>
+                            item.codArticol === codArticol
+                                ? { ...item, statusReteta: 1 }
+                                : item
+                        )
+                    );
+                }
+            } else {
+                setInventoryWarnings(warnings);
+                setShowInventoryModal(true);
+            }
+
             await updatePretStandardForRecipe(codArticol);
+
+            return;
+
         }
         setLocalPortiiValues(prev => ({
             ...prev,
@@ -480,10 +524,31 @@ const MeniuZilei = () => {
         if (difference > 0) {
             const warnings = await checkInventoryAvailability(codArticol, difference);
             if (warnings.length > 0) {
-                setInventoryWarnings(warnings);
-                setShowInventoryModal(true);
+                const maxPossible = await calculateMaxPossiblePortions(codArticol);
+
+                if (maxPossible >= currentValue) {
+                    const adjustedValue = Math.min(newValue, maxPossible);
+                    setLocalPortiiValues(prev => ({
+                        ...prev,
+                        [codArticol]: adjustedValue.toString()
+                    }));
+
+                    if (adjustedValue !== newValue) {
+                        setInventoryWarnings([{
+                            ingredient: "Auto-adjustat",
+                            needed: newValue,
+                            available: adjustedValue
+                        }]);
+                        setShowInventoryModal(true);
+                    }
+                } else {
+                    setInventoryWarnings(warnings);
+                    setShowInventoryModal(true);
+                }
+                return;
             }
         }
+
 
         if (value === "0") {
             try {

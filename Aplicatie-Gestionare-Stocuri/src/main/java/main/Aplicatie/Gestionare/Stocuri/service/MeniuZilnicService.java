@@ -33,6 +33,9 @@ public class MeniuZilnicService {
     public void deleteAllMeniuZilnic() {
         meniuZilnicRepository.deleteAll();
     }
+    public void finalizeDay() {
+        meniuZilnicRepository.finalizeDay();
+    }
     public List<MeniuZilnic> findAllMeniuZilnic() {
         return meniuZilnicRepository.findAll();
     }

@@ -55,6 +55,6 @@ public class MeniuZilnicController {
     }
     @DeleteMapping("/finalizare-zi")
     public void finalizareZi() {
-        meniuZilnicService.deleteAllMeniuZilnic();
+        meniuZilnicService.finalizeDay();
     }
 }

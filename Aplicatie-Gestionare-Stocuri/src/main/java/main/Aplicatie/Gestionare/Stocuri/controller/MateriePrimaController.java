@@ -29,8 +29,8 @@ public class MateriePrimaController {
         return materiePrimaService.findAllMateriiPrime();
     }
 
-    @GetMapping("/{codArticol}")
-    public ResponseEntity<MateriePrima> getMateriePrimaById(@PathVariable String codArticol) {
+    @GetMapping("/getInfo")
+    public ResponseEntity<MateriePrima> getMateriePrimaById(@RequestParam String codArticol) {
         return materiePrimaService.findById(codArticol)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -61,8 +61,8 @@ public class MateriePrimaController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @DeleteMapping("/{codArticol}")
-    public ResponseEntity<Void> deleteMateriePrima(@PathVariable String codArticol) {
+    @DeleteMapping("/delete-materie")
+    public ResponseEntity<Void> deleteMateriePrima(@RequestParam String codArticol) {
         if (materiePrimaService.findById(codArticol).isPresent()) {
             materiePrimaService.deleteMateriePrima(codArticol);
             return ResponseEntity.noContent().build();

@@ -155,7 +155,7 @@ const MeniuZilei = () => {
             if (!isNaN(numValue) && numValue >= 0) {
                 const currentItem = data.find(item => item.codArticol === codArticol);
                 if (currentItem && currentItem.totalPortii !== numValue) {
-                    updateTotalPortiiOnly(codArticol, numValue);
+                    updateTotalPortii(codArticol, numValue);
                 }
             }
         });
@@ -176,43 +176,29 @@ const MeniuZilei = () => {
         }
     };
 
-    const updateInventoryAdd = async (codIngredient: string, cantitateNecesara: number) => {
+
+    const updatePretStandardForRecipe = async (codArticol: string) => {
         try {
-            const inventoryEntries = await getInventoryEntries(codIngredient);
-            let remainingToAllocate = cantitateNecesara;
+            const currentItem = data.find(i => i.codArticol === codArticol);
+            if (!currentItem) return;
 
-            for (const entry of inventoryEntries) {
-                if (remainingToAllocate <= 0) break;
+            const ingredientsResponse = await axios.get(`http://localhost:8080/api/reteta-ingrediente/ingrediente?codReteta=${codArticol}`);
+            const recipeIngredients = ingredientsResponse.data as RetetaIngredient[];
 
-                const availableInEntry = entry.cantitate - entry.cantitateFolosita;
+            const newPretStandard = await calculatePretStandard(codArticol, currentItem.portii, recipeIngredients);
 
-                if (availableInEntry > 0) {
-                    const toAllocate = Math.min(remainingToAllocate, availableInEntry);
-                    const newCantitateFolosita = entry.cantitateFolosita + toAllocate;
-
-                    await axios.put(`http://localhost:8080/api/intrari-magazie/update-folosita`,
-                        null,
-                        {
-                            params: {
-                                codIngredient: entry.id.codIngredient,
-                                dataAchizitie: entry.id.dataAchizitie,
-                                cantitateFolosita: newCantitateFolosita
-                            }
-                        }
-                    );
-                    remainingToAllocate -= toAllocate;
-                }
-            }
-
-            if (remainingToAllocate > 0) {
-                console.warn(`Could not allocate ${remainingToAllocate} units of ingredient ${codIngredient} - insufficient stock`);
-            }
+            setData(prev => prev.map(item =>
+                item.codArticol === codArticol ? { ...item, pretStandard: newPretStandard, valoareStandard: newPretStandard } : item
+            ));
+            setFilteredData(prev => prev.map(item =>
+                item.codArticol === codArticol ? { ...item, pretStandard: newPretStandard, valoareStandard: newPretStandard } : item
+            ));
         } catch (err) {
-            console.error(`Error updating inventory for ingredient ${codIngredient}:`, err);
+            console.error('Error updating pretStandard:', err);
         }
     };
 
-    const updateTotalPortiiOnly = async (codArticol: string, newValue: number) => {
+    const updateTotalPortii = async (codArticol: string, newValue: number) => {
         try {
             await axios.put(
                 `http://localhost:8080/api/executii-retete/update-portii`,
@@ -237,43 +223,11 @@ const MeniuZilei = () => {
             ));
 
             fetchIngredients(codArticol);
+
+            await updatePretStandardForRecipe(codArticol);
         } catch (err) {
             console.error('Error updating total portii:', err);
             setError('Failed to update portions');
-        }
-    };
-
-    const updateInventoryRemove = async (codIngredient: string, cantitateToRemove: number) => {
-        try {
-            const inventoryEntries = await getInventoryEntries(codIngredient);
-            let remainingToRemove = cantitateToRemove;
-
-            for (let i = inventoryEntries.length - 1; i >= 0 && remainingToRemove > 0; i--) {
-                const entry = inventoryEntries[i];
-
-                if (entry.cantitateFolosita > 0) {
-                    const toRemove = Math.min(remainingToRemove, entry.cantitateFolosita);
-                    const newCantitateFolosita = entry.cantitateFolosita - toRemove;
-
-                    await axios.put(`http://localhost:8080/api/intrari-magazie/update-folosita`,
-                        null,
-                        {
-                            params: {
-                                codIngredient: entry.id.codIngredient,
-                                dataAchizitie: entry.id.dataAchizitie,
-                                cantitateFolosita: newCantitateFolosita
-                            }
-                        }
-                    );
-                    remainingToRemove -= toRemove;
-                }
-            }
-
-            if (remainingToRemove > 0) {
-                console.warn(`Could not remove ${remainingToRemove} units of ingredient ${codIngredient} - not enough was previously allocated`);
-            }
-        } catch (err) {
-            console.error(`Error updating inventory for ingredient ${codIngredient}:`, err);
         }
     };
 
@@ -346,12 +300,18 @@ const MeniuZilei = () => {
         }
 
         try {
+            const currentItem = data.find(item => item.codArticol === codArticol);
+            if (!currentItem) return [];
+
             const ingredientsResponse = await axios.get(`http://localhost:8080/api/reteta-ingrediente/ingrediente?codReteta=${codArticol}`);
             const recipeIngredients = ingredientsResponse.data;
             const warnings: { ingredient: string, needed: number, available: number }[] = [];
 
             for (const ingredient of recipeIngredients) {
-                const quantityNeeded = ingredient.cantitate * quantityChange;
+                const basePortii = currentItem.portii || 1;
+                const perPortionQty = ingredient.necesar / basePortii;
+                const quantityNeeded = perPortionQty * quantityChange;
+
                 const inventoryEntries = await getInventoryEntries(ingredient.id.codIngredient);
 
                 const totalAvailable = inventoryEntries.reduce((sum, entry) =>
@@ -381,7 +341,7 @@ const MeniuZilei = () => {
             const ingredientsWithPrices = await Promise.all(
                 response.data.map(async (ingredient: RetetaIngredient) => {
                     try {
-                        const priceResponse = await axios.get(`http://localhost:8080/api/materii-prime/${ingredient.id.codIngredient}`);
+                        const priceResponse = await axios.get(`http://localhost:8080/api/materii-prime`);
                         return {
                             ...ingredient,
                             localId: uuidv4(),
@@ -406,37 +366,6 @@ const MeniuZilei = () => {
             console.error('Error fetching ingredients:', err);
         }
     };
-
-    const updateTotalPortii = async (codArticol: string, newValue: number) => {
-        try {
-            const currentItem = data.find(item => item.codArticol === codArticol);
-            if (!currentItem) return;
-
-            const quantityDifference = newValue - currentItem.totalPortii;
-
-            if (quantityDifference !== 0) {
-                const ingredientsResponse = await axios.get(`http://localhost:8080/api/reteta-ingrediente/ingrediente?codReteta=${codArticol}`);
-                const recipeIngredients = ingredientsResponse.data;
-
-                if (recipeIngredients.length > 0) {
-                    for (const ingredient of recipeIngredients) {
-                        const ingredientQuantityChange = ingredient.cantitate * Math.abs(quantityDifference);
-
-                        if (quantityDifference > 0) {
-                            await updateInventoryAdd(ingredient.id.codIngredient, ingredientQuantityChange);
-                        } else {
-                            await updateInventoryRemove(ingredient.id.codIngredient, ingredientQuantityChange);
-                        }
-                    }
-                }
-            }
-            await updateTotalPortiiOnly(codArticol, newValue);
-        } catch (err) {
-            console.error('Error updating total portii:', err);
-            setError('Failed to update portions');
-        }
-    };
-
 
     const handleFinalizeDay = async () => {
         setShowFinalizeModal(false);
@@ -510,6 +439,7 @@ const MeniuZilei = () => {
                         : item
                 )
             );
+            await updatePretStandardForRecipe(codArticol);
         }
         setLocalPortiiValues(prev => ({
             ...prev,
@@ -523,7 +453,7 @@ const MeniuZilei = () => {
             let totalPrice = 0;
 
             for (const ingredient of ingredients) {
-                const response = await axios.get(`http://localhost:8080/api/materii-prime/${ingredient.id.codIngredient}`);
+                const response = await axios.get(`http://localhost:8080/api/materii-prime/getInfo?codArticol=${ingredient.id.codIngredient}`);
                 const materiePrima: MateriePrima = response.data;
 
                 const ingredientCost = (ingredient.cantitate * materiePrima.pretMateriePrima) / portii;
@@ -557,39 +487,10 @@ const MeniuZilei = () => {
 
         if (value === "0") {
             try {
-                if (!recipesWithoutIngredients.has(codArticol)) {
-                    const currentItem = data.find(item => item.codArticol === codArticol);
-                    if (currentItem) {
-                        const ingredientsResponse = await axios.get(`http://localhost:8080/api/reteta-ingrediente/ingrediente?codReteta=${codArticol}`);
-                        const recipeIngredients = ingredientsResponse.data;
-
-                        for (const ingredient of recipeIngredients) {
-                            const quantityToRemove = ingredient.cantitate * currentItem.totalPortii;
-                            await updateInventoryRemove(ingredient.id.codIngredient, quantityToRemove);
-                        }
-                    }
-                }
-                setData(prev =>
-                    prev.map(item =>
-                        item.codArticol === codArticol
-                            ? { ...item, statusReteta: 0 }
-                            : item
-                    )
-                );
-
-                setFilteredData(prev =>
-                    prev.map(item =>
-                        item.codArticol === codArticol
-                            ? { ...item, statusReteta: 0 }
-                            : item
-                    )
-                );
-
                 await axios.delete(`http://localhost:8080/api/meniu-zilnic/delete-reteta-from-meniu?codArticol=${codArticol}`);
 
                 setData(prev => prev.filter(item => item.codArticol !== codArticol));
                 setFilteredData(prev => prev.filter(item => item.codArticol !== codArticol));
-
 
             } catch (err) {
                 console.error('Error deleting total portii:', err);
@@ -613,24 +514,6 @@ const MeniuZilei = () => {
 
             if (newValue === 0) {
                 try {
-
-                    const ingredientsResponse = await axios.get(`http://localhost:8080/api/reteta-ingrediente/ingrediente?codReteta=${codArticol}`);
-                    const recipeIngredients = ingredientsResponse.data;
-
-                    const inventoryPromises = recipeIngredients.map((ingredient: RetetaIngredient) => {
-                        const quantityToRemove = ingredient.cantitate * currentValue;
-                        return updateInventoryRemove(ingredient.id.codIngredient, quantityToRemove);
-                    });
-
-                    await Promise.all(inventoryPromises);
-
-
-                    const updateState = (prev: any[]) => prev.map(item =>
-                        item.codArticol === codArticol ? { ...item, statusReteta: 0 } : item
-                    );
-                    setData(updateState);
-                    setFilteredData(updateState);
-
                     await axios.delete(`http://localhost:8080/api/meniu-zilnic/delete-reteta-from-meniu?codArticol=${codArticol}`);
 
                     setData(prev => prev.filter(item => item.codArticol !== codArticol));
@@ -645,17 +528,6 @@ const MeniuZilei = () => {
                 }
             } else {
                 try {
-                    if (!recipesWithoutIngredients.has(codArticol)) {
-                        const ingredientsResponse = await axios.get(`http://localhost:8080/api/reteta-ingrediente/ingrediente?codReteta=${codArticol}`);
-                        const recipeIngredients = ingredientsResponse.data;
-
-                        const inventoryPromises = recipeIngredients.map((ingredient: RetetaIngredient) => {
-                            return updateInventoryRemove(ingredient.id.codIngredient, ingredient.cantitate);
-                        });
-
-                        await Promise.all(inventoryPromises);
-                    }
-
                     await updateTotalPortii(codArticol, newValue);
 
                 } catch (err) {
@@ -665,6 +537,7 @@ const MeniuZilei = () => {
                         [codArticol]: currentValue.toString()
                     }));
                 }
+                await updatePretStandardForRecipe(codArticol);
             }
         }
     };
@@ -696,14 +569,6 @@ const MeniuZilei = () => {
         e.preventDefault();
         try {
             if (modalType === 'delete' && selectedItem) {
-                const ingredientsResponse = await axios.get(`http://localhost:8080/api/reteta-ingrediente/ingrediente?codReteta=${selectedItem.codArticol}`);
-                const recipeIngredients = ingredientsResponse.data;
-
-                for (const ingredient of recipeIngredients) {
-                    const quantityToRemove = ingredient.cantitate * selectedItem.totalPortii;
-                    await updateInventoryRemove(ingredient.id.codIngredient, quantityToRemove);
-                }
-
                 await axios.delete(`http://localhost:8080/api/meniu-zilnic/delete-reteta-from-meniu?codArticol=${selectedItem.codArticol}`);
             }
             await fetchData();

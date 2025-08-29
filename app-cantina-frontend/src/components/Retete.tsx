@@ -293,12 +293,18 @@ const Retete = () => {
 
     const checkInventoryAvailability = async (codArticol: string, quantityChange: number): Promise<{ ingredient: string, needed: number, available: number }[]> => {
         try {
+            const currentItem = data.find(item => item.codArticol === codArticol);
+            if (!currentItem) return [];
+
             const ingredientsResponse = await axios.get(`http://localhost:8080/api/reteta-ingrediente/ingrediente?codReteta=${codArticol}`);
             const recipeIngredients = ingredientsResponse.data;
             const warnings: { ingredient: string, needed: number, available: number }[] = [];
 
             for (const ingredient of recipeIngredients) {
-                const quantityNeeded = ingredient.cantitate * quantityChange;
+                const basePortii = currentItem.portii || 1;
+                const perPortionQty = ingredient.necesar / basePortii;
+                const quantityNeeded = perPortionQty * quantityChange;
+
                 const inventoryEntries = await getInventoryEntries(ingredient.id.codIngredient);
 
                 const totalAvailable = inventoryEntries.reduce((sum, entry) =>
@@ -323,15 +329,6 @@ const Retete = () => {
 
     const updateTotalPortii = async (codArticol: string, newValue: number) => {
         try {
-            const warnings = await checkInventoryAvailability(codArticol, newValue);
-            if (warnings.length > 0) {
-                setInventoryWarnings(warnings);
-                setShowInventoryModal(true);
-                setLocalPortiiValues(prev => ({
-                    ...prev,
-                    [codArticol]: newValue.toString()
-                }));
-            }
             await axios.put(
                 `http://localhost:8080/api/executii-retete/update-portii`,
                 null,
@@ -345,29 +342,6 @@ const Retete = () => {
             ).then(() => {
                 fetchIngredients(codArticol);
             });
-
-            const ingredientsResponse = await axios.get(`http://localhost:8080/api/reteta-ingrediente/ingrediente?codReteta=${codArticol}`);
-            const recipeIngredients = ingredientsResponse.data;
-
-            if (recipeIngredients.length > 0) {
-
-                const currentItem = data.find(item => item.codArticol === codArticol);
-                if (!currentItem) return;
-
-                const quantityDifference = newValue - currentItem.totalPortii;
-
-                if (quantityDifference !== 0) {
-                    for (const ingredient of recipeIngredients) {
-                        const ingredientQuantityChange = ingredient.cantitate * Math.abs(quantityDifference);
-
-                        if (quantityDifference > 0) {
-                            await updateInventoryAdd(ingredient.id.codIngredient, ingredientQuantityChange);
-                        } else {
-                            await updateInventoryRemove(ingredient.id.codIngredient, ingredientQuantityChange);
-                        }
-                    }
-                }
-            }
 
             setData(prev => prev.map(item =>
                 item.codArticol === codArticol
@@ -397,77 +371,6 @@ const Retete = () => {
             return [];
         }
     };
-
-    const updateInventoryAdd = async (codIngredient: string, cantitateNecesara: number) => {
-        try {
-            const inventoryEntries = await getInventoryEntries(codIngredient);
-            let remainingToAllocate = cantitateNecesara;
-
-            for (const entry of inventoryEntries) {
-                if (remainingToAllocate <= 0) break;
-
-                const availableInEntry = entry.cantitate - entry.cantitateFolosita;
-
-                if (availableInEntry > 0) {
-                    const toAllocate = Math.min(remainingToAllocate, availableInEntry);
-                    const newCantitateFolosita = entry.cantitateFolosita + toAllocate;
-
-                    await axios.put(`http://localhost:8080/api/intrari-magazie/update-folosita`,
-                        null,
-                        {
-                            params: {
-                                codIngredient: entry.id.codIngredient,
-                                dataAchizitie: entry.id.dataAchizitie,
-                                cantitateFolosita: newCantitateFolosita
-                            }
-                        }
-                    );
-                    remainingToAllocate -= toAllocate;
-                }
-            }
-
-            if (remainingToAllocate > 0) {
-                console.warn(`Could not allocate ${remainingToAllocate} units of ingredient ${codIngredient} - insufficient stock`);
-            }
-        } catch (err) {
-            console.error(`Error updating inventory for ingredient ${codIngredient}:`, err);
-        }
-    };
-
-    const updateInventoryRemove = async (codIngredient: string, cantitateToRemove: number) => {
-        try {
-            const inventoryEntries = await getInventoryEntries(codIngredient);
-            let remainingToRemove = cantitateToRemove;
-
-            for (let i = inventoryEntries.length - 1; i >= 0 && remainingToRemove > 0; i--) {
-                const entry = inventoryEntries[i];
-
-                if (entry.cantitateFolosita > 0) {
-                    const toRemove = Math.min(remainingToRemove, entry.cantitateFolosita);
-                    const newCantitateFolosita = entry.cantitateFolosita - toRemove;
-
-                    await axios.put(`http://localhost:8080/api/intrari-magazie/update-folosita`,
-                        null,
-                        {
-                            params: {
-                                codIngredient: entry.id.codIngredient,
-                                dataAchizitie: entry.id.dataAchizitie,
-                                cantitateFolosita: newCantitateFolosita
-                            }
-                        }
-                    );
-                    remainingToRemove -= toRemove;
-                }
-            }
-
-            if (remainingToRemove > 0) {
-                console.warn(`Could not remove ${remainingToRemove} units of ingredient ${codIngredient} - not enough was previously allocated`);
-            }
-        } catch (err) {
-            console.error(`Error updating inventory for ingredient ${codIngredient}:`, err);
-        }
-    };
-
     const incrementPortii = async (codArticol: string, currentValue: number) => {
         const newValue = currentValue + 1;
         const warnings = await checkInventoryAvailability(codArticol, 1);
@@ -498,14 +401,29 @@ const Retete = () => {
         }));
     };
 
-    const handlePortiiChange = (codArticol: string, value: string) => {
+    const handlePortiiChange = async (codArticol: string, value: string) => {
         let safeValue = Math.abs(parseInt(value)).toString();
         value = safeValue === "NaN" ? "0" : safeValue;
+
+        const currentItem = data.find(item => item.codArticol === codArticol);
+        if (!currentItem) return;
+        const newValue = parseInt(value);
+        const currentValue = currentItem.totalPortii;
+        const difference = newValue - currentValue;
+
+        if (difference > 0) {
+            const warnings = await checkInventoryAvailability(codArticol, difference);
+            if (warnings.length > 0) {
+                setInventoryWarnings(warnings);
+                setShowInventoryModal(true);
+            }
+        }
 
         setLocalPortiiValues(prev => ({
             ...prev,
             [codArticol]: value
         }));
+
     };
 
     const decrementPortii = (codArticol: string, currentValue: number) => {
@@ -1200,13 +1118,13 @@ const Retete = () => {
                                                                     codIngredient: ing.codArticol
                                                                 },
                                                                 numeMateriePrima: ing.denumire,
-                                                                um: ing.um
+                                                                um: ing.denumireUm
                                                             });
                                                             setIngredientSearch(ing.denumire);
                                                             setFilteredIngredients([]);
                                                         }}
                                                     >
-                                                        {ing.denumire} ({ing.um})
+                                                        {ing.denumire} ({ing.denumireUm})
                                                     </li>
                                                 ))}
                                             </ul>

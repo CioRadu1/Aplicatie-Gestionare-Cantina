@@ -175,7 +175,7 @@ const MateriiPrime = () => {
             } else if (modalType === 'edit') {
                 await axios.put(`http://localhost:8080/api/materii-prime/${formData.codArticol}`, formData);
             } else if (modalType === 'delete' && selectedItem) {
-                await axios.delete(`http://localhost:8080/api/materii-prime/${selectedItem.codArticol}`);
+                await axios.delete(`http://localhost:8080/api/materii-prime/delete-materie?codArticol=${selectedItem.codArticol}`);
             }
             await fetchData();
             closeModal();
